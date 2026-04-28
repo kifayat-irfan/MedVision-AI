@@ -6,17 +6,20 @@ import datetime
 class PatientDB:
     def __init__(self):
         try:
-            # Priority: Try Cloud first
+            # Check if keys exist in secrets
             if "SUPABASE_URL" in st.secrets and "SUPABASE_KEY" in st.secrets:
                 url = st.secrets["SUPABASE_URL"]
                 key = st.secrets["SUPABASE_KEY"]
                 self.supabase: Client = create_client(url, key)
                 self.mode = "CLOUD"
+                # THIS LINE WILL TELL US THE TRUTH ON SCREEN
+                st.sidebar.success("🟢 Database Mode: CLOUD (Supabase)") 
             else:
                 self.mode = "LOCAL"
                 self.setup_local()
+                st.sidebar.warning("🟡 Database Mode: LOCAL (SQLite)")
         except Exception as e:
-            st.error(f"🚨 Critical DB Init Error: {e}")
+            st.sidebar.error(f"🚨 DB Error: {e}")
             self.mode = "LOCAL"
             self.setup_local()
 
@@ -28,18 +31,11 @@ class PatientDB:
     def save_report(self, patient_id, modality, report):
         if self.mode == "CLOUD":
             try:
-                # EXACT column names matching the Supabase Table
-                data = {
-                    "patient_id": str(patient_id), 
-                    "modality": str(modality), 
-                    "report": str(report)
-                }
-                # We use .execute() to force the request
+                data = {"patient_id": str(patient_id), "modality": str(modality), "report": str(report)}
                 self.supabase.table("reports").insert(data).execute()
                 return True
             except Exception as e:
-                # WE WANT TO SEE THIS ERROR!
-                st.error(f"❌ SUPABASE ERROR: {str(e)}") 
+                st.error(f"❌ Cloud Save Error: {e}")
                 return False
         else:
             try:
@@ -48,9 +44,7 @@ class PatientDB:
                                   (patient_id, modality, report, date))
                 self.conn.commit()
                 return True
-            except Exception as e:
-                st.error(f"Local DB Error: {e}")
-                return False
+            except: return False
 
     def get_history(self, patient_id):
         if self.mode == "CLOUD":
