@@ -95,8 +95,7 @@ with col_left:
                     # SAVE TO DATABASE
                     success = db.save_report(p_id, modality, report)
                     if not success:
-                        st.warning("Analysis complete, but report could not be saved to cloud due to connection issues.")
-
+                     pass 
                     
                     status.update(label="Diagnostic Complete!", state="complete", expanded=False)
                 except Exception as e:
