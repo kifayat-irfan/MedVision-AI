@@ -5,20 +5,18 @@ import datetime
 
 class PatientDB:
     def __init__(self):
-        # Logic: Agar secrets mein SUPABASE_URL hai, toh Cloud use karo.
-        # Warna Local SQLite use karo.
         try:
+            # Priority: Try Cloud first
             if "SUPABASE_URL" in st.secrets and "SUPABASE_KEY" in st.secrets:
                 url = st.secrets["SUPABASE_URL"]
                 key = st.secrets["SUPABASE_KEY"]
                 self.supabase: Client = create_client(url, key)
                 self.mode = "CLOUD"
-                print("Connected to Cloud Database (Supabase)")
             else:
                 self.mode = "LOCAL"
                 self.setup_local()
         except Exception as e:
-            print(f"Cloud connection failed, switching to Local: {e}")
+            st.error(f"🚨 Critical DB Init Error: {e}")
             self.mode = "LOCAL"
             self.setup_local()
 
@@ -30,11 +28,18 @@ class PatientDB:
     def save_report(self, patient_id, modality, report):
         if self.mode == "CLOUD":
             try:
-                data = {"patient_id": patient_id, "modality": modality, "report": report}
+                # EXACT column names matching the Supabase Table
+                data = {
+                    "patient_id": str(patient_id), 
+                    "modality": str(modality), 
+                    "report": str(report)
+                }
+                # We use .execute() to force the request
                 self.supabase.table("reports").insert(data).execute()
                 return True
             except Exception as e:
-                print(f"Cloud Save Error: {e}")
+                # WE WANT TO SEE THIS ERROR!
+                st.error(f"❌ SUPABASE ERROR: {str(e)}") 
                 return False
         else:
             try:
@@ -43,7 +48,9 @@ class PatientDB:
                                   (patient_id, modality, report, date))
                 self.conn.commit()
                 return True
-            except: return False
+            except Exception as e:
+                st.error(f"Local DB Error: {e}")
+                return False
 
     def get_history(self, patient_id):
         if self.mode == "CLOUD":
@@ -51,7 +58,7 @@ class PatientDB:
                 response = self.supabase.table("reports").select("modality, report, created_at").eq("patient_id", patient_id).order("created_at", desc=True).execute()
                 return response.data
             except Exception as e:
-                print(f"Cloud Fetch Error: {e}")
+                st.error(f"Cloud Fetch Error: {e}")
                 return []
         else:
             cursor = self.conn.execute("SELECT modality, report, date FROM reports WHERE patient_id = ? ORDER BY id DESC", (patient_id,))
