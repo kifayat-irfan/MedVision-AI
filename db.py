@@ -15,6 +15,7 @@ class PatientDB:
                 self.mode = "LOCAL"
                 self.setup_local()
         except Exception as e:
+            st.error(f"🚨 DB Init Error: {e}")
             self.mode = "LOCAL"
             self.setup_local()
 
@@ -26,11 +27,19 @@ class PatientDB:
     def save_report(self, patient_id, modality, report):
         if self.mode == "CLOUD":
             try:
-                data = {"patient_id": str(patient_id), "modality": str(modality), "report": str(report)}
+                # Exact column names as per Supabase Table
+                data = {
+                    "patient_id": str(patient_id), 
+                    "modality": str(modality), 
+                    "report": str(report)
+                }
+                # We use .execute() to ensure the request is sent
                 self.supabase.table("reports").insert(data).execute()
+                st.success("✅ Data successfully synced to Cloud!")
                 return True
             except Exception as e:
-                st.error(f"❌ Cloud Save Error: {e}")
+                # YAHAN ERROR NAZAR AAYEGA!
+                st.error(f"❌ SUPABASE SAVE ERROR: {str(e)}") 
                 return False
         else:
             try:
@@ -39,7 +48,9 @@ class PatientDB:
                                   (patient_id, modality, report, date))
                 self.conn.commit()
                 return True
-            except: return False
+            except Exception as e:
+                st.error(f"Local DB Error: {e}")
+                return False
 
     def get_history(self, patient_id):
         if self.mode == "CLOUD":
