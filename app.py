@@ -17,6 +17,11 @@ if 'report' not in st.session_state: st.session_state.report = None
 st.markdown('<div class="command-center">', unsafe_allow_html=True)
 st.markdown('<div class="cyber-header"><div class="cyber-title">MedVision AI</div><div style="color: #60a5fa;">The Complete Enterprise Intelligence Suite v5.0</div></div>', unsafe_allow_html=True)
 
+if db.mode == "CLOUD":
+    st.markdown('<div style="text-align: center; color: #22c55e; font-size: 0.8rem; margin-bottom: 20px;">🟢 System Status: Connected to Cloud Database (Supabase)</div>', unsafe_allow_html=True)
+else:
+    st.markdown('<div style="text-align: center; color: #facc15; font-size: 0.8rem; margin-bottom: 20px;">🟡 System Status: Running on Local Database (SQLite)</div>', unsafe_allow_html=True)
+
 # --- 1. PATIENT HISTORY (DATABASE) - PRESERVED ---
 with st.expander("📁 Patient Archive & History (Retrieve Past Records)"):
     pid_search = st.text_input("Enter Patient ID to retrieve records", placeholder="e.g. PAT-001")
@@ -25,10 +30,10 @@ with st.expander("📁 Patient Archive & History (Retrieve Past Records)"):
         if history:
             st.markdown(f"Found {len(history)} records for **{pid_search}**")
             for mod, rep, date in history:
-                # Har report ke liye ek alag expander banayein taake poora data dikhe
+                # for each record, show an expander with the report and option to restore it to dashboard
                 with st.expander(f"📅 {date} | 🔬 {mod}"):
                     st.markdown("---")
-                    st.markdown("**Full Diagnostic Report:**")
+                    st.markdown("Full Diagnostic Report:")
                     st.markdown(f'<div style="background: #0f172a; color: #e2e8f0; padding: 15px; border-radius: 10px; border: 1px solid #3b82f6; font-family: "Inter"; white-space: pre-wrap;">{rep}</div>', unsafe_allow_html=True)
                     
                     # Extra Feature: Restore this report to main dashboard
