@@ -215,13 +215,71 @@ with col_right:
         else:
             st.info("ℹ️ Heatmap not available for restored historical reports.")
 
-        st.markdown(
-            f'<div style="background: #f8fafc; color: #0f172a; padding: 30px; '
-            f'border-radius: 20px; margin: 20px 0; white-space: pre-wrap; '
-            f'font-family: Inter; border: 1px solid #e2e8f0;">'
-            f"{st.session_state.report}</div>",
-            unsafe_allow_html=True,
-        )
+        # ── Clean & Render Report ─────────────────────────────────────────
+        import re as _re
+
+        def render_clean_report(raw: str):
+            clean = raw
+            clean = _re.sub(r"#{1,6}\s*", "", clean)
+            clean = _re.sub(r"\*{1,3}(.*?)\*{1,3}", r"\1", clean)
+            clean = _re.sub(r"_{1,2}(.*?)_{1,2}", r"\1", clean)
+            clean = _re.sub(r"`{1,3}(.*?)`{1,3}", r"\1", clean)
+
+            section_pattern = _re.compile(
+                r"(TECHNICAL QUALITY|FINDINGS|TEMPORAL COMPARISON|"
+                r"FINAL IMPRESSION|TREATMENT ROADMAP|EVIDENCE BASE|HEATMAP)",
+                _re.IGNORECASE
+            )
+            parts = section_pattern.split(clean)
+
+            section_colors = {
+                "TECHNICAL QUALITY":    "#3b82f6",
+                "FINDINGS":             "#8b5cf6",
+                "TEMPORAL COMPARISON":  "#f59e0b",
+                "FINAL IMPRESSION":     "#ef4444",
+                "TREATMENT ROADMAP":    "#22c55e",
+                "EVIDENCE BASE":        "#06b6d4",
+                "HEATMAP":              "#64748b",
+            }
+
+            if len(parts) <= 1:
+                st.markdown(
+                    f'<div style="background:#f8fafc;color:#0f172a;padding:25px;'
+                    f'border-radius:16px;font-family:Inter;line-height:1.8;'
+                    f'white-space:pre-wrap;border:1px solid #e2e8f0;">{clean}</div>',
+                    unsafe_allow_html=True,
+                )
+                return
+
+            i = 1
+            while i < len(parts):
+                header = parts[i].strip().upper()
+                body   = parts[i + 1].strip() if i + 1 < len(parts) else ""
+                color  = section_colors.get(header, "#64748b")
+
+                if header == "HEATMAP":
+                    i += 2
+                    continue
+
+                st.markdown(
+                    f'<div style="margin:12px 0 4px 0;padding:8px 16px;'
+                    f'background:{color}18;border-left:4px solid {color};'
+                    f'border-radius:6px;">'
+                    f'<span style="color:{color};font-weight:700;'
+                    f'font-size:0.8rem;letter-spacing:1px;">{header}</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f'<div style="background:#f8fafc;color:#1e293b;padding:14px 18px;'
+                    f'border-radius:0 0 8px 8px;font-family:Inter;line-height:1.8;'
+                    f'white-space:pre-wrap;font-size:0.92rem;margin-bottom:6px;">'
+                    f'{body}</div>',
+                    unsafe_allow_html=True,
+                )
+                i += 2
+
+        render_clean_report(st.session_state.report)
 
         d1, d2, d3 = st.columns(3)
         p_full = f"ID: {p_id}, Age: {age}, Gender: {gender}"
