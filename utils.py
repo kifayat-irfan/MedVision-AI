@@ -9,9 +9,9 @@ OPENROUTER_BASE = "https://openrouter.ai/api/v1/chat/completions"
 
 # FIXED: Correct OpenRouter model name format
 MODELS = [
-    "google/gemini-2.0-flash-exp:free",              # FREE - no credits needed
-    "meta-llama/llama-3.2-11b-vision-instruct:free", # FREE - no credits needed
-    "google/gemini-2.5-flash-preview:free",          # FREE - no credits needed
+    "nvidia/nemotron-nano-12b-v2-vl:free",               # FREE - vision-language model
+    "google/gemma-4-26b-a4b-it:free",                    # FREE - Gemma 4 multimodal
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", # FREE - omni vision model
 ]
 
 def image_to_base64(img):
