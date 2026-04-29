@@ -9,11 +9,10 @@ OPENROUTER_BASE = "https://openrouter.ai/api/v1/chat/completions"
 
 # FIXED: Correct OpenRouter model name format
 MODELS = [
-    "google/gemini-1.5-pro",           # was: google/gemini-pro-1.5   ❌
-    "google/gemini-1.5-flash",         # was: google/gemini-flash-1.5  ❌
-    "meta-llama/llama-3.2-11b-vision-instruct"  # this one was correct ✅
+    "google/gemini-2.0-flash-001",
+    "google/gemini-2.5-flash-preview:thinking",
+    "meta-llama/llama-3.2-11b-vision-instruct"
 ]
-
 def image_to_base64(img):
     buf = BytesIO()
     img.convert("RGB").save(buf, format="JPEG")
