@@ -1,60 +1,83 @@
-# 🏥 MedVision AI — Enterprise Clinical Imaging Suite v5.0
+# MedVision AI — Medical Scan Analysis Assistant
 
-[![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python)](https://www.python.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Framework-ff4b4b?style=for-the-badge&logo=streamlit)](https://streamlit.io/)
-[![OpenRouter](https://img.shields.io/badge/AI-OpenRouter-orange?style=for-the-badge)](https://openrouter.ai/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-App-ff4b4b)](https://streamlit.io/)
+[![OpenRouter](https://img.shields.io/badge/AI-OpenRouter-orange)](https://openrouter.ai/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-## 🌟 Overview
-**MedVision AI** is a high-performance, industry-grade medical imaging diagnostic support platform. Unlike standard AI tools, it implements a **Multi-Model Ensemble Architecture** to analyze complex medical scans (X-Ray, MRI, CT, etc.) with clinical-grade precision. 
+> ⚠️ **Disclaimer:** This is an educational demo project. The AI-generated analysis is a *second-opinion-style draft*,
+> **not a medical diagnosis** and not a medical device. Do not use it for clinical decisions.
 
-It transforms raw medical imagery into structured, actionable diagnostic reports, providing a "Second Opinion" for radiologists and clinicians.
+A Streamlit app that analyzes medical scans (X-ray, MRI, CT) with vision-language models and produces a
+structured, readable report — with the key finding highlighted directly on the image.
 
----
+## What it does
 
-## 🚀 Key Enterprise Features
+1. **Upload a scan** — JPG/PNG, or DICOM (`.dcm`) which is converted to an image automatically.
+2. **Optional prior scan** — upload an older scan of the same patient for temporal comparison.
+3. **AI analysis** — the image is sent to vision-language models via OpenRouter. Three free models are tried
+   in order with automatic fallback if one fails or rate-limits:
+   - `nvidia/nemotron-nano-12b-v2-vl:free`
+   - `google/gemma-4-26b-a4b-it:free`
+   - `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`
+4. **Structured report** — the model returns fixed sections: technical quality, findings, temporal comparison
+   (improved / stable / worsened vs. the prior scan), final impression, treatment roadmap, evidence base,
+   and heatmap coordinates for the most critical finding.
+5. **Heatmap overlay** — the reported coordinates are drawn on the scan (Pillow) so you can see *where*
+   the model is pointing.
+6. **Patient vault** — reports are saved per patient ID. Works with local SQLite out of the box; switches to
+   Supabase (PostgreSQL) automatically when `SUPABASE_URL` / `SUPABASE_KEY` are provided.
+7. **Export** — download the report as PDF, DOCX, or TXT. Past reports can be retrieved by patient ID and
+   restored to the dashboard.
 
-### 🧠 1. Ensemble AI Brain (Multi-Model Consensus)
-Instead of relying on a single AI, MedVision AI routes images through an ensemble of frontier VLMs (**Gemini 1.5 Pro, Claude 3.5, Llama 3.2 Vision**). 
-- **Reliability:** The system cross-references findings across models to ensure high-confidence diagnosis.
-- **Fallback Logic:** Automatic fail-over mechanism ensures 99.9% uptime.
+## Tech stack
 
-### ⏳ 2. Temporal Evolution Analysis (Longitudinal Study)
-A critical clinical requirement. The platform allows users to upload a **Prior Scan** alongside the **Current Scan**.
-- **Comparative Logic:** AI analyzes changes in pathology over time (e.g., "Nodule growth of 2mm since last scan").
-- **Trend Tracking:** Identifies if a condition is regressing, stable, or evolving.
+- **App:** Streamlit (Python)
+- **AI:** OpenRouter API — free vision-language models with fallback chain
+- **Imaging:** Pillow (heatmap overlay), pydicom + NumPy (DICOM → image via min-max normalization)
+- **Storage:** SQLite (local default) / Supabase PostgreSQL (cloud, optional)
+- **Export:** fpdf2 (PDF), python-docx (DOCX)
 
-### 🖼️ 3. AI-Driven Saliency Heatmaps
-No more "Black Box" AI. MedVision AI implements **Pathological Localization**.
-- **Visual Evidence:** The AI identifies the exact coordinates of the abnormality and overlays a **Dynamic Red Heatmap** on the scan.
-- **Transparency:** Provides visual proof of why the AI reached a specific diagnosis.
+## Setup
 
-### 📂 4. Clinical-Grade DICOM Ingestion
-Supports professional medical standards beyond just JPG/PNG.
-- **DICOM Native:** Directly processes `.dcm` files, extracting pixel arrays and metadata.
-- **Preprocessing:** Automatic normalization of Hounsfield units for consistent analysis.
-
-### 🏥 5. Secure Patient Record Vault
-Integrated local SQLite database to manage longitudinal patient data.
-- **History Retrieval:** Instant retrieval of past diagnostic reports using Patient IDs.
-- **Case Management:** Allows clinicians to review a patient's entire journey in one click.
-
----
-
-## 🛠️ Technical Architecture
-
-- **Frontend:** Streamlit (Custom CSS Glass-morphism UI)
-- **Backend:** Python 3.11+
-- **AI Orchestration:** OpenRouter API $\rightarrow$ Vision-Language Models (VLMs)
-- **Image Processing:** Pillow, NumPy, PyDICOM
-- **Data Persistence:** SQLite3
-- **Export Engine:** FPDF2, Python-Docx
-
----
-
-## 📦 Installation & Setup
-
-### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/medvision-ai.git
-cd medvision-ai
+git clone https://github.com/kifayat-irfan/MedVision-AI.git
+cd MedVision-AI
+python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Create `.streamlit/secrets.toml`:
+
+```toml
+OPENROUTER_API_KEY = "sk-or-your-key-here"   # required — get one free at openrouter.ai
+# Optional: cloud patient vault (otherwise local SQLite is used)
+# SUPABASE_URL = "https://your-project.supabase.co"
+# SUPABASE_KEY = "your-anon-key"
+```
+
+```bash
+streamlit run app.py
+```
+
+## Project structure
+
+```
+app.py          # Streamlit UI — upload, history, dashboard, export
+utils.py        # OpenRouter ensemble call (3-model fallback) + heatmap drawing
+dicom_utils.py  # DICOM → PIL image (pydicom, min-max normalization)
+db.py           # Patient vault — SQLite locally, Supabase when secrets exist
+report_gen.py   # Report export to PDF / DOCX / TXT
+styles.py       # Custom UI styling
+```
+
+## Limitations
+
+- Analysis quality depends entirely on the underlying vision-language models; free-tier models can be
+  slow or rate-limited, which is why the app tries three in sequence.
+- Heatmap coordinates come from the model itself — treat them as approximate.
+- DICOM handling is basic (pixel data → image); no Hounsfield-unit windowing or series navigation.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
