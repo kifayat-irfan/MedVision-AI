@@ -21,8 +21,14 @@ vision-language AI for structured reporting.
 |---|---|---|---|
 | 🫁 Chest X-ray | DenseNet121 | NIH ChestX-ray14 (112,120 images) | 14 pathologies |
 | 🧠 Brain MRI | MobileNetV3-Small | Brain tumor MRI (5,369 images) | **92.0%** |
-| 🔬 Skin / Dermatology | MobileNetV3-Small | HAM10000 (10,015 images) | **62.1%** |
-| 🩻 CT / Ultrasound | Vision-language AI assist | — | clearly labeled |
+| 🔬 Skin / Dermatology | EfficientNet-B0 | HAM10000 (10,015 images) | **82.46%** (TTA x5) |
+| 🩻 Ultrasound | MobileNetV3-Small | BUSI breast ultrasound (780 images) | **78.26%** (4-way TTA) |
+| 🩻 CT Scan | Vision-language AI assist | — | clearly labeled |
+
+> **Honest note on the 85% target:** the 85% goal was **NOT** reached for skin or ultrasound.
+> Skin improved from 62.1% to **82.46%** (TTA x5, macro F1 0.6914), but melanoma recall **dropped to 0.41** (from 0.60) — a real regression, not hidden.
+> Ultrasound reached **78.26%** with 4-way TTA (73.91% single-pass; malignant recall 0.61 is the weakest class).
+> Both remain educational / decision-support demos, not clinically validated tools.
 
 3. **Grad-CAM visual explanation** — genuine heatmaps from each model's own gradients.
 4. **Grounded AI report** — SenseNova's vision model writes the structured clinical report,
@@ -35,14 +41,16 @@ vision-language AI for structured reporting.
 - **Pathology CNNs:**
   - Chest X-ray: DenseNet121 via `torchxrayvision`, pretrained on NIH ChestX-ray14 (112k images)
   - Brain MRI: MobileNetV3-Small, trained on 5,369 brain MRIs — **92.0% test accuracy**
-  - Skin lesions: MobileNetV3-Small, trained on HAM10000 (10,015 dermatoscopic images) — **62.1% test accuracy**
+  - Skin lesions: EfficientNet-B0, trained on HAM10000 (10,015 dermatoscopic images) — **82.46% test accuracy** (TTA x5, macro F1 0.6914; melanoma recall 0.41, down from 0.60)
+  - Breast ultrasound: MobileNetV3-Small, trained on BUSI (780 images) — **78.26% test accuracy** (4-way TTA; 73.91% single-pass; malignant recall 0.61)
+  - **85% target NOT reached** for skin or ultrasound — see the honest note under the model table
 - **Explainability:** Grad-CAM — genuine heatmaps from each model's own gradients
 - **Report AI:** SenseNova `sensenova-6.8-flash-lite` (vision), grounded in CNN probabilities
 - **App:** Streamlit (Python) — clean clinical light theme
 - **Imaging:** Pillow, pydicom + NumPy (DICOM → image, handles multi-frame + MONOCHROME1)
 - **Storage:** SQLite (local default) / Supabase PostgreSQL (cloud, optional)
 - **Export:** fpdf2 (PDF), python-docx (DOCX) — every export carries a medical disclaimer
-- **Tests:** pytest — 25 tests (multi-model router, CNN pipelines, Grad-CAM, DICOM, report gen, DB)
+- **Tests:** pytest — 29 tests (multi-model router, CNN pipelines, Grad-CAM, DICOM, report gen, DB)
 
 ## Setup
 

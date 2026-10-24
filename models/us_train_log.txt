@@ -1,0 +1,143 @@
+[05:29:31] Total usable images: 780
+[05:29:31] train: 550 {'benign': 307, 'malignant': 148, 'normal': 95}
+[05:29:31] val: 115 {'benign': 65, 'malignant': 31, 'normal': 19}
+[05:29:31] test: 115 {'benign': 65, 'malignant': 31, 'normal': 19}
+[05:29:32] Model: mobilenet_v3_small | trainable 1.08M / total 1.08M params
+[05:32:40] [head] Epoch 1 | train_loss=1.0244 train_acc=0.4473 | val_acc=0.4348
+[05:32:40]   -> saved best (val_acc=0.4348)
+[05:34:27] [head] Epoch 2 | train_loss=0.9103 train_acc=0.5655 | val_acc=0.6435
+[05:34:27]   -> saved best (val_acc=0.6435)
+[05:35:59] [head] Epoch 3 | train_loss=0.8304 train_acc=0.6291 | val_acc=0.5739
+[05:37:33] [head] Epoch 4 | train_loss=0.7786 train_acc=0.6327 | val_acc=0.6348
+[05:39:09] [head] Epoch 5 | train_loss=0.7784 train_acc=0.6782 | val_acc=0.5304
+[05:40:45] [head] Epoch 6 | train_loss=0.7240 train_acc=0.6927 | val_acc=0.4783
+[05:42:28] [head] Epoch 7 | train_loss=0.6891 train_acc=0.7255 | val_acc=0.6609
+[05:42:29]   -> saved best (val_acc=0.6609)
+[05:44:11] [head] Epoch 8 | train_loss=0.7424 train_acc=0.6873 | val_acc=0.6522
+[05:45:46] [head] Epoch 9 | train_loss=0.7228 train_acc=0.6855 | val_acc=0.7043
+[05:45:47]   -> saved best (val_acc=0.7043)
+[05:47:31] [head] Epoch 10 | train_loss=0.6693 train_acc=0.7255 | val_acc=0.7130
+[05:47:31]   -> saved best (val_acc=0.7130)
+[05:47:31] val_acc 0.7130 < 0.85 -> unfreezing backbone for fine-tuning
+[05:52:57] [finetune] Epoch 11 | train_loss=0.6631 train_acc=0.7400 | val_acc=0.7478
+[05:52:57]   -> saved best (val_acc=0.7478)
+[05:55:37] [finetune] Epoch 12 | train_loss=0.6113 train_acc=0.7600 | val_acc=0.7217
+[05:58:25] [finetune] Epoch 13 | train_loss=0.5422 train_acc=0.7836 | val_acc=0.7913
+[05:58:25]   -> saved best (val_acc=0.7913)
+[06:01:13] [finetune] Epoch 14 | train_loss=0.5208 train_acc=0.7891 | val_acc=0.7391
+[06:04:10] [finetune] Epoch 15 | train_loss=0.4571 train_acc=0.8327 | val_acc=0.7565
+[06:06:43] [finetune] Epoch 16 | train_loss=0.4417 train_acc=0.8073 | val_acc=0.7739
+[06:09:45] [finetune] Epoch 17 | train_loss=0.4418 train_acc=0.8291 | val_acc=0.7739
+[06:12:30] [finetune] Epoch 18 | train_loss=0.4161 train_acc=0.8400 | val_acc=0.7826
+[06:15:43] [finetune] Epoch 19 | train_loss=0.4118 train_acc=0.8364 | val_acc=0.7913
+[06:18:33] [finetune] Epoch 20 | train_loss=0.4624 train_acc=0.8000 | val_acc=0.7913
+[06:18:44] DONE in 49.2 min | test_acc=0.6522 | model=4.4MB
+[06:18:44] per-class: {"benign": 0.7059, "malignant": 0.5714, "normal": 0.625}
+[06:22:36] === ROUND 2: train+val combined, TTA eval ===
+[06:22:36] train+val: 665 {'benign': 372, 'malignant': 179, 'normal': 114}
+[06:22:36] test: 115 {'benign': 65, 'malignant': 31, 'normal': 19}
+[06:22:36] train: 599, val: 66, test: 115
+[06:24:22] [head] Epoch 1/8 | train_loss=1.0413 train_acc=0.4674 | val_acc=0.6515
+[06:24:22]   -> saved best (val_acc=0.6515)
+[06:25:54] [head] Epoch 2/8 | train_loss=0.9157 train_acc=0.5693 | val_acc=0.5000
+[06:27:33] [head] Epoch 3/8 | train_loss=0.8580 train_acc=0.6010 | val_acc=0.5606
+[06:29:02] [head] Epoch 4/8 | train_loss=0.8045 train_acc=0.6611 | val_acc=0.4242
+[06:30:39] [head] Epoch 5/8 | train_loss=0.7945 train_acc=0.6711 | val_acc=0.5455
+[06:32:24] [head] Epoch 6/8 | train_loss=0.7455 train_acc=0.6778 | val_acc=0.5000
+[06:34:07] [head] Epoch 7/8 | train_loss=0.6786 train_acc=0.7262 | val_acc=0.5000
+[06:35:38] [head] Epoch 8/8 | train_loss=0.7555 train_acc=0.6477 | val_acc=0.4848
+[06:35:38] Unfreezing backbone for fine-tuning
+[06:38:44] [finetune] Epoch 1/12 | train_loss=0.7364 train_acc=0.6962 | val_acc=0.6667
+[06:38:44]   -> saved best (val_acc=0.6667)
+[06:41:44] [finetune] Epoch 2/12 | train_loss=0.5931 train_acc=0.7629 | val_acc=0.7121
+[06:41:44]   -> saved best (val_acc=0.7121)
+[06:43:45] [finetune] Epoch 3/12 | train_loss=0.5452 train_acc=0.7880 | val_acc=0.7424
+[06:43:45]   -> saved best (val_acc=0.7424)
+[06:47:08] [finetune] Epoch 4/12 | train_loss=0.5096 train_acc=0.7963 | val_acc=0.6818
+[06:50:04] [finetune] Epoch 5/12 | train_loss=0.5030 train_acc=0.7846 | val_acc=0.6364
+[06:53:05] [finetune] Epoch 6/12 | train_loss=0.5298 train_acc=0.7947 | val_acc=0.6970
+[06:56:10] [finetune] Epoch 7/12 | train_loss=0.4575 train_acc=0.8114 | val_acc=0.6970
+[06:58:56] [finetune] Epoch 8/12 | train_loss=0.4435 train_acc=0.8297 | val_acc=0.6970
+[07:01:57] [finetune] Epoch 9/12 | train_loss=0.4320 train_acc=0.8414 | val_acc=0.7273
+[07:04:58] [finetune] Epoch 10/12 | train_loss=0.3889 train_acc=0.8514 | val_acc=0.7576
+[07:04:58]   -> saved best (val_acc=0.7576)
+[07:07:42] [finetune] Epoch 11/12 | train_loss=0.4379 train_acc=0.8114 | val_acc=0.7576
+[07:11:04] [finetune] Epoch 12/12 | train_loss=0.4174 train_acc=0.8314 | val_acc=0.7424
+[07:11:27] DONE in 48.9 min | test_acc(TTA)=0.7565
+[07:11:27] per-class: {"benign": 0.7833, "malignant": 0.7119, "normal": 0.7451}
+[07:23:59] === ROUND 3: mask-crop augmentation ===
+[07:30:56] === ROUND 3: mask-crop augmentation ===
+[07:37:24] train+val+crops: 1216 (incl 551 mask-crops), test: 115
+[07:37:35] === ROUND 3: mask-crop augmentation ===
+[07:37:37] train+val+crops: 1216 (incl 551 mask-crops), test: 115
+[07:37:37] train: 1095, val: 121, test: 115
+[07:40:20] [head] Epoch 1/8 | train_loss=0.9089 train_acc=0.5562 | val_acc=0.5455
+[07:40:20]   -> saved best (val_acc=0.5455)
+[07:42:55] [head] Epoch 2/8 | train_loss=0.7583 train_acc=0.6749 | val_acc=0.4380
+[07:45:54] [head] Epoch 3/8 | train_loss=0.7258 train_acc=0.6941 | val_acc=0.6198
+[07:45:54]   -> saved best (val_acc=0.6198)
+[07:48:47] [head] Epoch 4/8 | train_loss=0.6747 train_acc=0.7132 | val_acc=0.7438
+[07:48:47]   -> saved best (val_acc=0.7438)
+[07:51:40] [head] Epoch 5/8 | train_loss=0.6744 train_acc=0.7215 | val_acc=0.7521
+[07:51:40]   -> saved best (val_acc=0.7521)
+[07:54:15] [head] Epoch 6/8 | train_loss=0.6251 train_acc=0.7361 | val_acc=0.7107
+[07:57:28] [head] Epoch 7/8 | train_loss=0.5993 train_acc=0.7461 | val_acc=0.6694
+[08:00:34] [head] Epoch 8/8 | train_loss=0.6144 train_acc=0.7571 | val_acc=0.7521
+[08:00:34] Unfreezing backbone for fine-tuning
+[08:06:05] [finetune] Epoch 1/12 | train_loss=0.5648 train_acc=0.7662 | val_acc=0.8347
+[08:06:05]   -> saved best (val_acc=0.8347)
+[08:11:15] [finetune] Epoch 2/12 | train_loss=0.5050 train_acc=0.7881 | val_acc=0.8347
+[08:16:31] [finetune] Epoch 3/12 | train_loss=0.4797 train_acc=0.8064 | val_acc=0.7851
+[08:21:44] [finetune] Epoch 4/12 | train_loss=0.3896 train_acc=0.8548 | val_acc=0.8182
+[08:27:08] [finetune] Epoch 5/12 | train_loss=0.4090 train_acc=0.8420 | val_acc=0.7851
+[08:32:46] [finetune] Epoch 6/12 | train_loss=0.3606 train_acc=0.8603 | val_acc=0.8760
+[08:32:46]   -> saved best (val_acc=0.8760)
+[08:38:05] [finetune] Epoch 7/12 | train_loss=0.3866 train_acc=0.8530 | val_acc=0.8595
+[08:42:26] [finetune] Epoch 8/12 | train_loss=0.3230 train_acc=0.8804 | val_acc=0.8512
+[08:45:54] [finetune] Epoch 9/12 | train_loss=0.3429 train_acc=0.8721 | val_acc=0.8512
+[08:50:56] [finetune] Epoch 10/12 | train_loss=0.3189 train_acc=0.8849 | val_acc=0.8512
+[08:55:46] [finetune] Epoch 11/12 | train_loss=0.3235 train_acc=0.8758 | val_acc=0.8678
+[09:00:37] [finetune] Epoch 12/12 | train_loss=0.2933 train_acc=0.8941 | val_acc=0.8678
+[09:00:52] DONE in 83.3 min | test_acc(TTA)=0.7652
+[09:00:52] per-class: {"benign": 0.8217, "malignant": 0.64, "normal": 0.7451}
+[09:05:15] === ROUND 4: mask-crop + class-weighted loss ===
+[09:05:18] train+val+crops: 1216 (incl 551 mask-crops), test: 115
+[09:05:18] train: 1095, val: 121, test: 115
+[09:05:19] class weights: {'benign': 0.54, 'malignant': 1.12, 'normal': 3.97}
+[09:08:44] [head] Epoch 1/8 | train_loss=0.6954 train_acc=0.5105 | val_acc=0.4959
+[09:08:44]   -> saved best (val_acc=0.4959)
+[09:11:35] [head] Epoch 2/8 | train_loss=0.5838 train_acc=0.6247 | val_acc=0.3306
+[09:14:41] === ROUND 5: mask-crop + class-weighted loss only ===
+[09:14:44] train+val+crops: 1216 (incl 551 mask-crops), test: 115
+[09:14:44] train: 1095, val: 121, test: 115
+[09:14:44] class weights: {'benign': 0.54, 'malignant': 1.12, 'normal': 3.97}
+[09:17:19] [head] Epoch 1/8 | train_loss=0.9319 train_acc=0.5717 | val_acc=0.4959
+[09:17:19]   -> saved best (val_acc=0.4959)
+[09:20:19] [head] Epoch 2/8 | train_loss=0.8007 train_acc=0.6210 | val_acc=0.4463
+[09:23:02] [head] Epoch 3/8 | train_loss=0.7314 train_acc=0.6804 | val_acc=0.5289
+[09:23:02]   -> saved best (val_acc=0.5289)
+[09:25:46] [head] Epoch 4/8 | train_loss=0.7503 train_acc=0.6694 | val_acc=0.6860
+[09:25:46]   -> saved best (val_acc=0.6860)
+[09:28:46] [head] Epoch 5/8 | train_loss=0.6860 train_acc=0.7142 | val_acc=0.6694
+[09:31:33] [head] Epoch 6/8 | train_loss=0.6473 train_acc=0.7315 | val_acc=0.6198
+[09:34:38] [head] Epoch 7/8 | train_loss=0.6663 train_acc=0.7068 | val_acc=0.7355
+[09:34:39]   -> saved best (val_acc=0.7355)
+[09:37:29] [head] Epoch 8/8 | train_loss=0.6468 train_acc=0.7169 | val_acc=0.6777
+[09:37:29] Unfreezing backbone for fine-tuning
+[09:42:48] [finetune] Epoch 1/12 | train_loss=0.6135 train_acc=0.7361 | val_acc=0.7934
+[09:42:48]   -> saved best (val_acc=0.7934)
+[09:48:24] [finetune] Epoch 2/12 | train_loss=0.5511 train_acc=0.7461 | val_acc=0.8099
+[09:48:24]   -> saved best (val_acc=0.8099)
+[09:56:10] [finetune] Epoch 3/12 | train_loss=0.5111 train_acc=0.7863 | val_acc=0.8017
+[10:01:39] [finetune] Epoch 4/12 | train_loss=0.4939 train_acc=0.7991 | val_acc=0.8264
+[10:01:39]   -> saved best (val_acc=0.8264)
+[10:06:36] [finetune] Epoch 5/12 | train_loss=0.4230 train_acc=0.8219 | val_acc=0.7769
+[10:11:48] [finetune] Epoch 6/12 | train_loss=0.4135 train_acc=0.8146 | val_acc=0.7934
+[10:17:16] [finetune] Epoch 7/12 | train_loss=0.3885 train_acc=0.8247 | val_acc=0.7686
+[10:22:15] [finetune] Epoch 8/12 | train_loss=0.3646 train_acc=0.8374 | val_acc=0.7769
+[10:27:32] [finetune] Epoch 9/12 | train_loss=0.3716 train_acc=0.8374 | val_acc=0.7521
+[10:32:38] [finetune] Epoch 10/12 | train_loss=0.3634 train_acc=0.8356 | val_acc=0.7934
+[10:38:04] [finetune] Epoch 11/12 | train_loss=0.3499 train_acc=0.8530 | val_acc=0.7934
+[10:42:58] [finetune] Epoch 12/12 | train_loss=0.3490 train_acc=0.8539 | val_acc=0.7851
+[10:43:17] DONE in 88.6 min | test_acc(TTA)=0.7130
+[10:43:17] per-class: {"benign": 0.7521, "malignant": 0.6441, "normal": 0.7037}

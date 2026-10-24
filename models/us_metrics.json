@@ -1,0 +1,52 @@
+{
+  "test_accuracy": 0.7826,
+  "eval_method": "4-way TTA (original + hflip + vflip + hvflip, averaged probabilities)",
+  "other_evals": {
+    "single_pass_no_tta": 0.7391,
+    "hflip_tta": 0.7652
+  },
+  "per_class": {
+    "benign": {
+      "precision": 0.8525,
+      "recall": 0.8,
+      "f1": 0.8254,
+      "n": 65
+    },
+    "malignant": {
+      "precision": 0.8636,
+      "recall": 0.6129,
+      "f1": 0.717,
+      "n": 31
+    },
+    "normal": {
+      "precision": 0.5938,
+      "recall": 1.0,
+      "f1": 0.7451,
+      "n": 19
+    }
+  },
+  "confusion_matrix": [
+    [
+      52,
+      3,
+      10
+    ],
+    [
+      9,
+      19,
+      3
+    ],
+    [
+      0,
+      0,
+      19
+    ]
+  ],
+  "class_order": [
+    "benign",
+    "malignant",
+    "normal"
+  ],
+  "n_test": 115,
+  "note": "85% target NOT reached. Best of 5 training rounds (round 3: mask-crop augmentation). Val accuracy was 87.6% but test is 78.3% \u2014 small-dataset split variance."
+}

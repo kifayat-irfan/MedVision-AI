@@ -3,7 +3,8 @@
 Routes each modality to its trained model:
   X-Ray (chest)  → DenseNet121 (NIH ChestX-ray14, 112k images) — cxr_model.py
   MRI (brain)    → MobileNetV3-Small (trained, 92% test accuracy)
-  Dermatology    → MobileNetV3-Small (trained on HAM10000, 62% test accuracy)
+  Dermatology    → EfficientNet-B0 (trained on HAM10000, 82.5% test accuracy, TTA x5)
+  Ultrasound     → MobileNetV3-Small (trained on BUSI, 78.3% test accuracy, 4-way TTA)
   CT / other     → VLM-only (clearly labeled AI-assist, no CNN)
 
 Every CNN model also gets Grad-CAM visual explanations.
@@ -23,9 +24,9 @@ MODELS_DIR = Path(__file__).resolve().parent / "models"
 REGISTRY = {
     "X-Ray": ("cxr", "DenseNet121 · NIH ChestX-ray14", "112,120 images", None),
     "MRI": ("brain", "MobileNetV3-Small · Brain MRI", "92.0% test accuracy", "brain"),
-    "Dermatology": ("skin", "MobileNetV3-Small · HAM10000", "62.1% test accuracy", "skin"),
+    "Dermatology": ("skin", "EfficientNet-B0 · HAM10000", "82.5% test accuracy", "skin"),
     "CT Scan": (None, None, None, None),      # VLM-only
-    "Ultrasound": (None, None, None, None),   # VLM-only
+    "Ultrasound": ("us", "MobileNetV3-Small · BUSI breast ultrasound", "78.3% test accuracy (4-way TTA)", "us"),
 }
 
 _loaded = {}
@@ -44,13 +45,31 @@ def _build_mobilenet(num_classes: int) -> nn.Module:
     return m
 
 
+def _build_efficientnet(num_classes: int) -> nn.Module:
+    from torchvision import models
+    m = models.efficientnet_b0(weights=None)
+    in_f = m.classifier[1].in_features
+    m.classifier = nn.Sequential(
+        nn.Dropout(0.3),
+        nn.Linear(in_f, 256),
+        nn.SiLU(),
+        nn.Dropout(0.2),
+        nn.Linear(256, num_classes),
+    )
+    return m
+
+
 def _load_custom(key: str):
-    """Load a trained MobileNetV3-Small (brain or skin)."""
+    """Load a trained classifier (brain/us=MobileNet, skin=EfficientNet)."""
     if key in _loaded:
         return _loaded[key]
     info = json.loads((MODELS_DIR / f"{key}_model_info.json").read_text())
     classes = info["class_names"]
-    model = _build_mobilenet(len(classes))
+    arch = info.get("architecture", "")
+    if "efficientnet" in arch:
+        model = _build_efficientnet(len(classes))
+    else:
+        model = _build_mobilenet(len(classes))
     state = torch.load(MODELS_DIR / f"{key}_model.pt", map_location="cpu", weights_only=True)
     model.load_state_dict(state)
     model.eval()
@@ -82,11 +101,22 @@ def predict_modality(img: Image.Image, modality: str) -> dict | None:
     if key == "cxr":
         from cxr_model import predict as cxr_predict
         return cxr_predict(img)
-    if key in ("brain", "skin"):
+    if key in ("brain", "skin", "us"):
         model, classes, full_names, _ = _load_custom(key)
         x = _preprocess_rgb(img)
         with torch.no_grad():
-            probs = torch.softmax(model(x), dim=1).numpy()[0]
+            if key == "us":
+                # 4-way TTA, matching the 78.26% eval in models/us_metrics.json:
+                # average softmax probabilities over original + hflip + vflip + hvflip.
+                # Flips are applied to the normalized tensor (per-channel, so
+                # spatial flips are unaffected by normalization).
+                views = [x, torch.flip(x, dims=[3]), torch.flip(x, dims=[2]),
+                         torch.flip(x, dims=[2, 3])]
+                probs = torch.stack(
+                    [torch.softmax(model(v), dim=1) for v in views]
+                ).mean(dim=0).numpy()[0]
+            else:
+                probs = torch.softmax(model(x), dim=1).numpy()[0]
         out = {}
         for i, c in enumerate(classes):
             label = full_names.get(c, c)
@@ -110,14 +140,14 @@ def gradcam_for(img: Image.Image, modality: str, target_idx: int | None = None) 
     if key == "cxr":
         from cxr_model import gradcam as cxr_gradcam
         return cxr_gradcam(img, target_idx)
-    if key in ("brain", "skin"):
+    if key in ("brain", "skin", "us"):
         return _gradcam_mobilenet(img, key, target_idx)
     return None
 
 
 def _gradcam_mobilenet(img: Image.Image, key: str, target_idx: int | None = None) -> Image.Image:
     import torch.nn.functional as F
-    model, classes, _, _ = _load_custom(key)
+    model, classes, _, info = _load_custom(key)
     x = _preprocess_rgb(img)
 
     activations, gradients = {}, {}
@@ -128,7 +158,7 @@ def _gradcam_mobilenet(img: Image.Image, key: str, target_idx: int | None = None
     def bwd_hook(m, gin, gout):
         gradients["v"] = gout[0].detach()
 
-    # MobileNetV3-Small: last conv block
+    # Last conv block: MobileNetV3-Small -> features[-1]; EfficientNet-B0 -> features[-1]
     target_layer = model.features[-1]
     h1 = target_layer.register_forward_hook(fwd_hook)
     h2 = target_layer.register_full_backward_hook(bwd_hook)

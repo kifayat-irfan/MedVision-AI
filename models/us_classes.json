@@ -1,0 +1,13 @@
+{
+  "classes": [
+    "benign",
+    "malignant",
+    "normal"
+  ],
+  "full_names": {
+    "benign": "Benign lesion",
+    "malignant": "Malignant lesion",
+    "normal": "Normal (no lesion)"
+  },
+  "num_classes": 3
+}
