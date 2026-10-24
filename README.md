@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-App-ff4b4b)](https://streamlit.io/)
-[![OpenRouter](https://img.shields.io/badge/AI-OpenRouter-orange)](https://openrouter.ai/)
+[![SenseNova](https://img.shields.io/badge/AI-SenseNova-purple)](https://token.sensenova.ai/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 > ⚠️ **Disclaimer:** This is an educational demo project. The AI-generated analysis is a *second-opinion-style draft*,
@@ -15,11 +15,7 @@ structured, readable report — with the key finding highlighted directly on the
 
 1. **Upload a scan** — JPG/PNG, or DICOM (`.dcm`) which is converted to an image automatically.
 2. **Optional prior scan** — upload an older scan of the same patient for temporal comparison.
-3. **AI analysis** — the image is sent to vision-language models via OpenRouter. Three free models are tried
-   in order with automatic fallback if one fails or rate-limits:
-   - `nvidia/nemotron-nano-12b-v2-vl:free`
-   - `google/gemma-4-26b-a4b-it:free`
-   - `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`
+3. **AI analysis** — the image is sent to SenseNova's vision-capable `sensenova-6.8-flash-lite` model.
 4. **Structured report** — the model returns fixed sections: technical quality, findings, temporal comparison
    (improved / stable / worsened vs. the prior scan), final impression, treatment roadmap, evidence base,
    and heatmap coordinates for the most critical finding.
@@ -27,16 +23,17 @@ structured, readable report — with the key finding highlighted directly on the
    the model is pointing.
 6. **Patient vault** — reports are saved per patient ID. Works with local SQLite out of the box; switches to
    Supabase (PostgreSQL) automatically when `SUPABASE_URL` / `SUPABASE_KEY` are provided.
-7. **Export** — download the report as PDF, DOCX, or TXT. Past reports can be retrieved by patient ID and
-   restored to the dashboard.
+7. **Export** — download the report as PDF, DOCX, or TXT. Every export includes a medical disclaimer.
+   Past reports can be retrieved by patient ID and restored to the dashboard.
 
 ## Tech stack
 
 - **App:** Streamlit (Python)
-- **AI:** OpenRouter API — free vision-language models with fallback chain
-- **Imaging:** Pillow (heatmap overlay), pydicom + NumPy (DICOM → image via min-max normalization)
+- **AI:** SenseNova `sensenova-6.8-flash-lite` — vision-capable LLM
+- **Imaging:** Pillow (heatmap overlay), pydicom + NumPy (DICOM → image, handles multi-frame + MONOCHROME1)
 - **Storage:** SQLite (local default) / Supabase PostgreSQL (cloud, optional)
-- **Export:** fpdf2 (PDF), python-docx (DOCX)
+- **Export:** fpdf2 (PDF), python-docx (DOCX) — every export carries a medical disclaimer
+- **Tests:** pytest — 15 tests (DICOM edge cases, heatmap, report generation, DB roundtrip)
 
 ## Setup
 
@@ -50,7 +47,7 @@ pip install -r requirements.txt
 Create `.streamlit/secrets.toml`:
 
 ```toml
-OPENROUTER_API_KEY = "sk-or-your-key-here"   # required — get one free at openrouter.ai
+SENSENOVA_API_KEY = "your-sensenova-key-here"   # required
 # Optional: cloud patient vault (otherwise local SQLite is used)
 # SUPABASE_URL = "https://your-project.supabase.co"
 # SUPABASE_KEY = "your-anon-key"

@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from dicom_utils import process_dicom
 from report_gen import generate_pdf, generate_docx, generate_txt, sanitize_text, DISCLAIMER
-from utils import draw_heatmap, MODELS
+from utils import draw_heatmap, SENSENOVA_MODEL, SENSENOVA_BASE
 
 
 # ── DICOM ────────────────────────────────────────────────────────────────────
@@ -150,9 +150,9 @@ def test_sanitize_unicode():
 
 # ── Model config ─────────────────────────────────────────────────────────────
 
-def test_models_are_free_tier():
-    assert len(MODELS) >= 2
-    assert all(":free" in m for m in MODELS), "All models must be free tier"
+def test_sensenova_model_config():
+    assert SENSENOVA_MODEL == "sensenova-6.8-flash-lite"
+    assert SENSENOVA_BASE == "https://token.sensenova.ai/v1/chat/completions"
 
 
 def test_prompt_sections_present():

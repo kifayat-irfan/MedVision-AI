@@ -5,14 +5,10 @@ import re
 from io import BytesIO
 from PIL import Image, ImageDraw
 
-OPENROUTER_BASE = "https://openrouter.ai/api/v1/chat/completions"
+SENSENOVA_BASE = "https://token.sensenova.ai/v1/chat/completions"
 
-# FIXED: Correct OpenRouter model name format
-MODELS = [
-    "nvidia/nemotron-nano-12b-v2-vl:free",               # FREE - vision-language model
-    "google/gemma-4-26b-a4b-it:free",                    # FREE - Gemma 4 multimodal
-    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", # FREE - omni vision model
-]
+# SenseNova vision-capable model (tested 2026-10-24: correctly identified image colors)
+SENSENOVA_MODEL = "sensenova-6.8-flash-lite"
 
 def image_to_base64(img):
     buf = BytesIO()
@@ -20,12 +16,12 @@ def image_to_base64(img):
     return base64.b64encode(buf.getvalue()).decode()
 
 def call_ensemble_ai(current_img, prior_img, modality, patient_data):
-    # FIX: clear error message instead of raw KeyError when the key is missing
-    api_key = st.secrets.get("OPENROUTER_API_KEY", "").strip()
+    # SenseNova API key — clear error message instead of raw KeyError
+    api_key = st.secrets.get("SENSENOVA_API_KEY", "").strip()
     if not api_key:
         raise Exception(
-            "OPENROUTER_API_KEY is missing. Add it in Streamlit Secrets "
-            "(App settings → Secrets) — get a free key at openrouter.ai"
+            "SENSENOVA_API_KEY is missing. Add it in Streamlit Secrets "
+            "(App settings → Secrets)."
         )
     
     messages_content = []
@@ -82,77 +78,43 @@ HEATMAP: [x, y, radius] (0-100 scale, identify the most critical finding locatio
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://medvision-ai24.streamlit.app",
-        "X-Title": "MedVision AI"
     }
 
-    last_error = ""
+    payload = {
+        "model": SENSENOVA_MODEL,
+        "messages": [{"role": "user", "content": messages_content}],
+        "max_tokens": 2000,
+    }
 
-    for model in MODELS:
-        try:
-            st.write(f"🔄 Trying model: `{model}`...")
+    try:
+        st.write(f"🔄 Analyzing with `{SENSENOVA_MODEL}`...")
+        resp = requests.post(SENSENOVA_BASE, headers=headers, json=payload, timeout=120)
 
-            payload = {
-                "model": model,
-                "messages": [{"role": "user", "content": messages_content}]
-            }
+        if resp.status_code == 200:
+            data = resp.json()
+            message = data.get("choices", [{}])[0].get("message", {})
+            # SenseNova returns the answer in 'content' ('reasoning' holds the trace)
+            content = (message.get("content") or "").strip()
+            if content:
+                st.write(f"✅ Analysis complete")
+                return content, SENSENOVA_MODEL
+            raise Exception(f"Model returned empty content. Full response: {data}")
 
-            resp = requests.post(
-                OPENROUTER_BASE,
-                headers=headers,
-                json=payload,
-                timeout=90
+        elif resp.status_code == 401:
+            raise Exception(
+                "❌ Invalid SENSENOVA_API_KEY. Check your key in Streamlit Secrets."
+            )
+        elif resp.status_code == 429:
+            raise Exception("⚠️ Rate limited. Please wait a moment and try again.")
+        else:
+            raise Exception(
+                f"Model failed. Status: {resp.status_code} | Response: {resp.text[:300]}"
             )
 
-            # ── Verbose error logging (replaces silent except: continue) ──
-            if resp.status_code == 200:
-                data = resp.json()
-                content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                if content:
-                    st.write(f"✅ Success with `{model}`")
-                    return content, model
-                else:
-                    last_error = f"Model `{model}` returned empty content. Full response: {data}"
-                    st.warning(f"⚠️ {last_error}")
-
-            elif resp.status_code == 401:
-                last_error = "❌ Invalid API Key. Go to openrouter.ai and check your OPENROUTER_API_KEY in Streamlit Secrets."
-                st.error(last_error)
-                break  # No point trying other models with wrong key
-
-            elif resp.status_code == 402:
-                last_error = f"❌ Out of credits for `{model}`. Add credits at openrouter.ai/credits"
-                st.warning(last_error)
-
-            elif resp.status_code == 429:
-                last_error = f"⚠️ Rate limited on `{model}`. Trying next..."
-                st.warning(last_error)
-
-            else:
-                last_error = f"Model `{model}` failed. Status: {resp.status_code} | Response: {resp.text[:300]}"
-                st.warning(f"⚠️ {last_error}")
-
-        except requests.exceptions.Timeout:
-            last_error = f"⏱️ Model `{model}` timed out after 90 seconds."
-            st.warning(last_error)
-
-        except requests.exceptions.ConnectionError as e:
-            last_error = f"🌐 Connection error on `{model}`: {str(e)}"
-            st.warning(last_error)
-
-        except Exception as e:
-            last_error = f"💥 Unexpected error on `{model}`: {type(e).__name__}: {str(e)}"
-            st.warning(last_error)
-
-    # All models failed — raise with full context
-    raise Exception(
-        f"All 3 AI models failed.\n\n"
-        f"Last error: {last_error}\n\n"
-        f"Check:\n"
-        f"1. openrouter.ai/credits — do you have credits?\n"
-        f"2. Is OPENROUTER_API_KEY correct in Streamlit Secrets?\n"
-        f"3. Try openrouter.ai/chat to test the model manually."
-    )
+    except requests.exceptions.Timeout:
+        raise Exception("⏱️ Model timed out after 120 seconds. Try again.")
+    except requests.exceptions.ConnectionError as e:
+        raise Exception(f"🌐 Connection error: {str(e)}")
 
 
 def draw_heatmap(image, report_text):
