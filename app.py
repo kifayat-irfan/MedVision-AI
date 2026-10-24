@@ -1,5 +1,6 @@
 import streamlit as st
 from PIL import Image
+import re
 
 from styles import apply_custom_styles
 from utils import call_ensemble_ai, draw_heatmap
@@ -7,303 +8,199 @@ from dicom_utils import process_dicom
 from db import db
 from report_gen import generate_pdf, generate_docx, generate_txt
 
-st.set_page_config(page_title="MedVision AI | All-in-One Suite", layout="wide")
+st.set_page_config(page_title="MedVision AI", page_icon="🏥", layout="wide")
 apply_custom_styles()
 
-# ── Session State Initialization ──────────────────────────────────────────────
-if "analysis_done" not in st.session_state:
-    st.session_state.analysis_done = False
-if "report" not in st.session_state:
-    st.session_state.report = None
-if "final_img" not in st.session_state:
-    # CRITICAL FIX #4: Guard against KeyError when a report is restored from
-    # history (analysis_done=True but final_img was never set in that session).
-    st.session_state.final_img = None
-if "model" not in st.session_state:
-    st.session_state.model = "N/A"
+# ── Session state ────────────────────────────────────────────────────────────
+for key, default in [("analysis_done", False), ("report", None),
+                     ("final_img", None), ("model", "N/A")]:
+    if key not in st.session_state:
+        st.session_state[key] = default
 
-# ── Header ─────────────────────────────────────────────────────────────────────
-st.markdown('<div class="command-center">', unsafe_allow_html=True)
+# ── Header ───────────────────────────────────────────────────────────────────
 st.markdown(
-    '<div class="cyber-header">'
-    '<div class="cyber-title">MedVision AI</div>'
-    '<div style="color: #60a5fa;">The Complete Enterprise Intelligence Suite v5.0</div>'
+    '<div class="mv-header">'
+    "<h1>🏥 MedVision AI</h1>"
+    "<p>AI-assisted medical scan analysis — structured reports with visual finding localization</p>"
+    '<span class="mv-badge">Clinical Decision Support · Educational Demo</span>'
     "</div>",
     unsafe_allow_html=True,
 )
 
 if db.mode == "CLOUD":
     st.markdown(
-        '<div style="text-align: center; color: #22c55e; font-size: 0.8rem; margin-bottom: 20px;">'
-        "🟢 System Status: Connected to Cloud Database (Supabase)"
-        "</div>",
+        '<div class="mv-status cloud">🟢 Connected to cloud database</div>',
         unsafe_allow_html=True,
     )
 else:
     st.markdown(
-        '<div style="text-align: center; color: #facc15; font-size: 0.8rem; margin-bottom: 20px;">'
-        "🟡 System Status: Running on Local Database (SQLite)"
-        "</div>",
+        '<div class="mv-status local">🟡 Running on local database</div>',
         unsafe_allow_html=True,
     )
 
-# ── 1. PATIENT HISTORY (DATABASE) ─────────────────────────────────────────────
-with st.expander("📁 Patient Archive & History (Retrieve Past Records)"):
-    pid_search = st.text_input(
-        "Enter Patient ID to retrieve records", placeholder="e.g. PAT-001"
-    )
+# ── Patient history ──────────────────────────────────────────────────────────
+with st.expander("📁 Patient History — retrieve past reports"):
+    pid_search = st.text_input("Patient ID", placeholder="e.g. PAT-001", key="hist_search")
     if pid_search:
         history = db.get_history(pid_search)
         if history:
-            st.markdown(f"Found **{len(history)}** records for **{pid_search}**")
-            for mod, rep, date in history:   # Always tuples now — Bug #3 fixed
-                with st.expander(f"📅 {date} | 🔬 {mod}"):
-                    st.markdown("---")
-                    st.markdown("**Full Diagnostic Report:**")
-                    st.markdown(
-                        f'<div style="background: #0f172a; color: #e2e8f0; padding: 15px; '
-                        f'border-radius: 10px; border: 1px solid #3b82f6; font-family: Inter; '
-                        f'white-space: pre-wrap;">{rep}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    if st.button("Restore this report to dashboard", key=f"rest_{date}_{mod}"):
+            st.write(f"Found **{len(history)}** report(s) for **{pid_search}**")
+            for mod, rep, date in history:
+                with st.expander(f"📅 {date} · {mod}"):
+                    st.text(rep[:1500] + ("…" if len(rep) > 1500 else ""))
+                    if st.button("Restore to dashboard", key=f"rest_{date}_{mod}"):
                         st.session_state.report = rep
                         st.session_state.analysis_done = True
-                        st.session_state.final_img = None   # No heatmap for restored report
+                        st.session_state.final_img = None
                         st.rerun()
         else:
             st.info("No records found for this Patient ID.")
 
-# ── 2. MAIN INTERFACE ─────────────────────────────────────────────────────────
-col_left, col_right = st.columns([1, 2], gap="large")
+# ── Main layout ──────────────────────────────────────────────────────────────
+col_left, col_right = st.columns([1, 1.4], gap="large")
 
 with col_left:
-    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
-    st.markdown(
-        '<div style="font-weight: 700; color: #60a5fa; margin-bottom: 20px;">DATA ACQUISITION</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="mv-card">', unsafe_allow_html=True)
+    st.markdown('<div class="mv-card-title">Patient Information</div>', unsafe_allow_html=True)
 
-    p_id     = st.text_input("Patient ID", value="PAT-001")
-    age      = st.number_input("Age", 0, 120, 25)
-    gender   = st.selectbox("Gender", ["Male", "Female", "Other"])
+    p_id = st.text_input("Patient ID", value="PAT-001")
+    c1, c2 = st.columns(2)
+    with c1:
+        age = st.number_input("Age", 0, 120, 25)
+    with c2:
+        gender = st.selectbox("Gender", ["Male", "Female", "Other"])
     modality = st.selectbox("Modality", ["X-Ray", "MRI", "CT Scan", "Ultrasound", "Dermatology"])
-    history  = st.text_area("Clinical History")
+    history_txt = st.text_area("Clinical history / symptoms",
+                               placeholder="Brief clinical context…", height=80)
 
-    st.markdown(
-        '<div style="font-weight: 600; color: #fff; margin: 15px 0 5px 0;">📸 Current Scan</div>',
-        unsafe_allow_html=True,
-    )
-    current_file = st.file_uploader(
-        "Upload Current Scan", type=["jpg", "png", "jpeg", "dcm"], key="curr"
-    )
+    st.markdown('<div class="mv-card-title" style="margin-top:8px">Scans</div>', unsafe_allow_html=True)
+    current_file = st.file_uploader("Current scan", type=["jpg", "png", "jpeg", "dcm"])
+    prior_file = st.file_uploader("Prior scan (optional — for comparison)",
+                                  type=["jpg", "png", "jpeg", "dcm"])
 
-    st.markdown(
-        '<div style="font-weight: 600; color: #60a5fa; margin: 15px 0 5px 0;">'
-        "⏳ Prior Scan (Optional for Comparison)"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-    prior_file = st.file_uploader(
-        "Upload Previous Scan", type=["jpg", "png", "jpeg", "dcm"], key="prior"
-    )
-
+    current_img = None
     if current_file:
-        current_img = (
-            process_dicom(current_file)
-            if current_file.name.endswith(".dcm")
-            else Image.open(current_file)
-        )
+        current_img = (process_dicom(current_file)
+                       if current_file.name.lower().endswith(".dcm")
+                       else Image.open(current_file))
+        st.image(current_img, caption="Current scan", use_container_width=True)
 
-        st.markdown(
-            '<div class="scan-container"><div class="scan-line"></div>', unsafe_allow_html=True
-        )
-        st.image(current_img, caption="Current Scan", use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    analyze = st.button("🔍 Analyze Scan", type="primary", disabled=not current_img)
+    if analyze and current_img:
+        with st.status("Analyzing scan…", expanded=True) as status:
+            prior_img = None
+            if prior_file:
+                st.write("Comparing with prior scan…")
+                prior_img = (process_dicom(prior_file)
+                             if prior_file.name.lower().endswith(".dcm")
+                             else Image.open(prior_file))
+            try:
+                p_str = f"ID: {p_id}, Age: {age}, Gender: {gender}, History: {history_txt}"
+                report, model = call_ensemble_ai(current_img, prior_img, modality, p_str)
+                st.session_state.report = report
+                st.session_state.final_img = draw_heatmap(current_img, report)
+                st.session_state.analysis_done = True
+                st.session_state.model = model
 
-        if st.button("🚀 Execute Full Intelligence Analysis"):
-            with st.status("Running Comprehensive Analysis...", expanded=True) as status:
-                prior_img = None
-                if prior_file:
-                    st.write("⚖️ Performing Temporal Comparison...")
-                    prior_img = (
-                        process_dicom(prior_file)
-                        if prior_file.name.endswith(".dcm")
-                        else Image.open(prior_file)
-                    )
-                    # (prior_img assigned above)
-
-                try:
-                    p_str = f"ID: {p_id}, Age: {age}, Gender: {gender}, History: {history}"
-                    report, model = call_ensemble_ai(current_img, prior_img, modality, p_str)
-
-                    final_img = draw_heatmap(current_img, report)
-
-                    st.session_state.report       = report
-                    st.session_state.analysis_done = True
-                    st.session_state.final_img    = final_img
-                    st.session_state.model        = model
-
-                    # ── SAVE TO DATABASE ──────────────────────────────────────
-                    st.write("💾 Syncing report to database...")
-                    saved = db.save_report(p_id, modality, report)
-
-                    # CRITICAL FIX #5: Was `if not success: pass` — now we warn.
-                    if not saved:
-                        st.warning(
-                            "⚠️ Report was generated successfully but could NOT be saved "
-                            "to the database. See the error above for details. "
-                            "You can still download the report below."
-                        )
-
-                    status.update(
-                        label="Diagnostic Complete!", state="complete", expanded=False
-                    )
-                except Exception as e:
-                    st.error(f"Analysis Error: {e}")
+                st.write("Saving report…")
+                if not db.save_report(p_id, modality, report):
+                    st.warning("Report generated but could not be saved to the database. "
+                               "You can still download it below.")
+                status.update(label="Analysis complete", state="complete", expanded=False)
+            except Exception as e:
+                st.error(f"Analysis failed: {e}")
+                status.update(label="Analysis failed", state="error", expanded=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ── 3. RIGHT PANEL — RESULTS ──────────────────────────────────────────────────
+    st.markdown(
+        '<div class="mv-disclaimer">'
+        "⚠️ <b>Not a medical diagnosis.</b> This AI-generated report is a decision-support "
+        "draft for educational purposes only. A qualified healthcare professional must "
+        "review all findings before any clinical decision."
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
 with col_right:
     if not st.session_state.analysis_done:
         st.markdown(
-            '<div class="glass-panel" style="height: 600px; display: flex; align-items: center; '
-            'justify-content: center; text-align: center;">'
-            "<h2 style='color:white;'>System Idle</h2>"
-            "<p style='color: #64748b;'>Awaiting diagnostic data for full clinical analysis...</p>"
+            '<div class="mv-empty">'
+            "<h3>No analysis yet</h3>"
+            "<p>Upload a scan on the left and click <b>Analyze Scan</b>.<br>"
+            "The structured report will appear here.</p>"
             "</div>",
             unsafe_allow_html=True,
         )
     else:
-        st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+        st.markdown('<div class="mv-card">', unsafe_allow_html=True)
+        st.markdown('<div class="mv-card-title">Analysis Report</div>', unsafe_allow_html=True)
 
-        s1, s2, s3 = st.columns(3)
-        with s1:
-            st.markdown(
-                f'<div class="med-card"><span class="card-title">AI Engine</span>'
-                f'<div style="font-weight: 700;">{st.session_state.model}</div></div>',
-                unsafe_allow_html=True,
-            )
-        with s2:
-            st.markdown(
-                '<div class="med-card"><span class="card-title">Consensus</span>'
-                '<div style="font-weight: 700; color: #22c55e;">High Confidence</div></div>',
-                unsafe_allow_html=True,
-            )
-        with s3:
-            st.markdown(
-                f'<div class="med-card"><span class="card-title">Patient ID</span>'
-                f'<div style="font-weight: 700;">{p_id}</div></div>',
-                unsafe_allow_html=True,
-            )
+        m1, m2 = st.columns(2)
+        with m1:
+            st.markdown(f"**AI model:** `{st.session_state.model}`")
+        with m2:
+            st.markdown(f"**Patient:** {p_id} · {modality}")
 
-        # CRITICAL FIX #4: Only render heatmap if one exists (won't exist for
-        # restored-from-history reports, which have no image in this session).
         if st.session_state.final_img is not None:
-            st.markdown(
-                '<div style="text-align:center; margin: 20px 0;">'
-                '<span class="card-title">AI Pathological Localization (Heatmap)</span>'
-                "</div>",
-                unsafe_allow_html=True,
-            )
-            st.image(st.session_state.final_img, width=500)
+            st.markdown("**Finding localization**")
+            st.image(st.session_state.final_img, use_container_width=True)
         else:
-            st.info("ℹ️ Heatmap not available for restored historical reports.")
+            st.info("Heatmap not available for restored reports.")
 
-        # ── Clean & Render Report ─────────────────────────────────────────
-        import re as _re
-
-        def render_clean_report(raw: str):
+        # ── Render structured report ──
+        def render_report(raw: str):
             clean = raw
-            clean = _re.sub(r"#{1,6}\s*", "", clean)
-            clean = _re.sub(r"\*{1,3}(.*?)\*{1,3}", r"\1", clean)
-            clean = _re.sub(r"_{1,2}(.*?)_{1,2}", r"\1", clean)
-            clean = _re.sub(r"`{1,3}(.*?)`{1,3}", r"\1", clean)
+            for pat, rep in [(r"#{1,6}\s*", ""), (r"\*{1,3}(.*?)\*{1,3}", r"\1"),
+                             (r"_{1,2}(.*?)_{1,2}", r"\1"), (r"`{1,3}(.*?)`{1,3}", r"\1")]:
+                clean = re.sub(pat, rep, clean)
 
-            section_pattern = _re.compile(
+            section_re = re.compile(
                 r"(TECHNICAL QUALITY|FINDINGS|TEMPORAL COMPARISON|"
-                r"FINAL IMPRESSION|TREATMENT ROADMAP|EVIDENCE BASE|HEATMAP)",
-                _re.IGNORECASE
+                r"FINAL IMPRESSION|TREATMENT ROADMAP|EVIDENCE BASE)",
+                re.IGNORECASE,
             )
-            parts = section_pattern.split(clean)
-
-            section_colors = {
-                "TECHNICAL QUALITY":    "#3b82f6",
-                "FINDINGS":             "#8b5cf6",
-                "TEMPORAL COMPARISON":  "#f59e0b",
-                "FINAL IMPRESSION":     "#ef4444",
-                "TREATMENT ROADMAP":    "#22c55e",
-                "EVIDENCE BASE":        "#06b6d4",
-                "HEATMAP":              "#64748b",
+            parts = section_re.split(clean)
+            colors = {
+                "TECHNICAL QUALITY": "#0284c7",
+                "FINDINGS": "#7c3aed",
+                "TEMPORAL COMPARISON": "#d97706",
+                "FINAL IMPRESSION": "#dc2626",
+                "TREATMENT ROADMAP": "#16a34a",
+                "EVIDENCE BASE": "#0891b2",
             }
-
             if len(parts) <= 1:
-                st.markdown(
-                    f'<div style="background:#f8fafc;color:#0f172a;padding:25px;'
-                    f'border-radius:16px;font-family:Inter;line-height:1.8;'
-                    f'white-space:pre-wrap;border:1px solid #e2e8f0;">{clean}</div>',
-                    unsafe_allow_html=True,
-                )
+                st.markdown(f'<div class="mv-section-body">{clean}</div>', unsafe_allow_html=True)
                 return
-
-            i = 1
-            while i < len(parts):
+            for i in range(1, len(parts), 2):
                 header = parts[i].strip().upper()
-                body   = parts[i + 1].strip() if i + 1 < len(parts) else ""
-                color  = section_colors.get(header, "#64748b")
-
-                if header == "HEATMAP":
-                    i += 2
-                    continue
-
+                body = parts[i + 1].strip() if i + 1 < len(parts) else ""
+                color = colors.get(header, "#64748b")
                 st.markdown(
-                    f'<div style="margin:12px 0 4px 0;padding:8px 16px;'
-                    f'background:{color}18;border-left:4px solid {color};'
-                    f'border-radius:6px;">'
-                    f'<span style="color:{color};font-weight:700;'
-                    f'font-size:0.8rem;letter-spacing:1px;">{header}</span>'
-                    f'</div>',
+                    f'<div class="mv-section-head" style="background:{color}14;'
+                    f'color:{color};border-left:4px solid {color}">{header}</div>'
+                    f'<div class="mv-section-body">{body}</div>',
                     unsafe_allow_html=True,
                 )
-                st.markdown(
-                    f'<div style="background:#f8fafc;color:#1e293b;padding:14px 18px;'
-                    f'border-radius:0 0 8px 8px;font-family:Inter;line-height:1.8;'
-                    f'white-space:pre-wrap;font-size:0.92rem;margin-bottom:6px;">'
-                    f'{body}</div>',
-                    unsafe_allow_html=True,
-                )
-                i += 2
 
-        render_clean_report(st.session_state.report)
+        render_report(st.session_state.report)
 
+        st.markdown("**Export report**")
         d1, d2, d3 = st.columns(3)
         p_full = f"ID: {p_id}, Age: {age}, Gender: {gender}"
         with d1:
-            st.download_button(
-                "📄 PDF",
-                generate_pdf(st.session_state.report, p_full, modality),
-                "report.pdf",
-            )
+            st.download_button("📄 PDF", generate_pdf(st.session_state.report, p_full, modality),
+                               "medvision-report.pdf", use_container_width=True)
         with d2:
-            st.download_button(
-                "📝 DOCX",
-                generate_docx(st.session_state.report, p_full, modality),
-                "report.docx",
-            )
+            st.download_button("📝 DOCX", generate_docx(st.session_state.report, p_full, modality),
+                               "medvision-report.docx", use_container_width=True)
         with d3:
-            st.download_button(
-                "📃 TXT",
-                generate_txt(st.session_state.report),
-                "report.txt",
-            )
+            st.download_button("📃 TXT", generate_txt(st.session_state.report),
+                               "medvision-report.txt", use_container_width=True)
 
-        if st.button("🔄 Reset Command Center"):
-            st.session_state.analysis_done = False
-            st.session_state.report        = None
-            st.session_state.final_img     = None
+        if st.button("↺ New analysis"):
+            for k in ("analysis_done", "report", "final_img"):
+                st.session_state[k] = False if k == "analysis_done" else None
             st.rerun()
 
         st.markdown("</div>", unsafe_allow_html=True)
-
-st.markdown("</div>", unsafe_allow_html=True)
