@@ -1,0 +1,20 @@
+{
+  "classes": [
+    "akiec",
+    "bcc",
+    "bkl",
+    "df",
+    "mel",
+    "nv",
+    "vasc"
+  ],
+  "full_names": {
+    "akiec": "Actinic keratosis / Bowen's disease",
+    "bcc": "Basal cell carcinoma",
+    "bkl": "Benign keratosis",
+    "df": "Dermatofibroma",
+    "mel": "Melanoma",
+    "nv": "Melanocytic nevus",
+    "vasc": "Vascular lesion"
+  }
+}

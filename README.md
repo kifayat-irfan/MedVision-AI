@@ -8,32 +8,41 @@
 > ⚠️ **Disclaimer:** This is an educational demo project. The AI-generated analysis is a *second-opinion-style draft*,
 > **not a medical diagnosis** and not a medical device. Do not use it for clinical decisions.
 
-A Streamlit app that analyzes medical scans (X-ray, MRI, CT) with vision-language models and produces a
-structured, readable report — with the key finding highlighted directly on the image.
+A Streamlit app that analyzes **chest X-rays** with a real trained neural network —
+DenseNet121 pretrained on the **NIH ChestX-ray14 dataset (112,120 images)** — plus
+vision-language AI for structured reporting.
 
-## What it does
+## How it works (the real pipeline)
 
-1. **Upload a scan** — JPG/PNG, or DICOM (`.dcm`) which is converted to an image automatically.
-2. **Optional prior scan** — upload an older scan of the same patient for temporal comparison.
-3. **AI analysis** — the image is sent to SenseNova's vision-capable `sensenova-6.8-flash-lite` model.
-4. **Structured report** — the model returns fixed sections: technical quality, findings, temporal comparison
-   (improved / stable / worsened vs. the prior scan), final impression, treatment roadmap, evidence base,
-   and heatmap coordinates for the most critical finding.
-5. **Heatmap overlay** — the reported coordinates are drawn on the scan (Pillow) so you can see *where*
-   the model is pointing.
-6. **Patient vault** — reports are saved per patient ID. Works with local SQLite out of the box; switches to
-   Supabase (PostgreSQL) automatically when `SUPABASE_URL` / `SUPABASE_KEY` are provided.
-7. **Export** — download the report as PDF, DOCX, or TXT. Every export includes a medical disclaimer.
-   Past reports can be retrieved by patient ID and restored to the dashboard.
+1. **Upload a medical image** — JPG/PNG, or DICOM (`.dcm`) converted automatically.
+2. **Modality routing** — each scan type goes to its own trained neural network:
+
+| Modality | Model | Training data | Test accuracy |
+|---|---|---|---|
+| 🫁 Chest X-ray | DenseNet121 | NIH ChestX-ray14 (112,120 images) | 14 pathologies |
+| 🧠 Brain MRI | MobileNetV3-Small | Brain tumor MRI (5,369 images) | **92.0%** |
+| 🔬 Skin / Dermatology | MobileNetV3-Small | HAM10000 (10,015 images) | **62.1%** |
+| 🩻 CT / Ultrasound | Vision-language AI assist | — | clearly labeled |
+
+3. **Grad-CAM visual explanation** — genuine heatmaps from each model's own gradients.
+4. **Grounded AI report** — SenseNova's vision model writes the structured clinical report,
+   with every claim grounded in the CNN's real probability outputs (anti-hallucination by design).
+5. **Patient vault** — reports saved per patient ID (SQLite locally / Supabase in cloud).
+6. **Export** — PDF, DOCX, TXT, each with a medical disclaimer.
 
 ## Tech stack
 
-- **App:** Streamlit (Python)
-- **AI:** SenseNova `sensenova-6.8-flash-lite` — vision-capable LLM
-- **Imaging:** Pillow (heatmap overlay), pydicom + NumPy (DICOM → image, handles multi-frame + MONOCHROME1)
+- **Pathology CNNs:**
+  - Chest X-ray: DenseNet121 via `torchxrayvision`, pretrained on NIH ChestX-ray14 (112k images)
+  - Brain MRI: MobileNetV3-Small, trained on 5,369 brain MRIs — **92.0% test accuracy**
+  - Skin lesions: MobileNetV3-Small, trained on HAM10000 (10,015 dermatoscopic images) — **62.1% test accuracy**
+- **Explainability:** Grad-CAM — genuine heatmaps from each model's own gradients
+- **Report AI:** SenseNova `sensenova-6.8-flash-lite` (vision), grounded in CNN probabilities
+- **App:** Streamlit (Python) — clean clinical light theme
+- **Imaging:** Pillow, pydicom + NumPy (DICOM → image, handles multi-frame + MONOCHROME1)
 - **Storage:** SQLite (local default) / Supabase PostgreSQL (cloud, optional)
 - **Export:** fpdf2 (PDF), python-docx (DOCX) — every export carries a medical disclaimer
-- **Tests:** pytest — 15 tests (DICOM edge cases, heatmap, report generation, DB roundtrip)
+- **Tests:** pytest — 25 tests (multi-model router, CNN pipelines, Grad-CAM, DICOM, report gen, DB)
 
 ## Setup
 

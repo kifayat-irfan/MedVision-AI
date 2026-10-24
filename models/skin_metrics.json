@@ -1,0 +1,130 @@
+{
+  "test_accuracy": 0.6212,
+  "macro_f1": 0.4676,
+  "n_test": 998,
+  "per_class": {
+    "akiec": {
+      "full_name": "Actinic keratosis / Bowen's disease",
+      "support": 32,
+      "precision": 0.3529,
+      "recall": 0.5625,
+      "f1": 0.4337
+    },
+    "bcc": {
+      "full_name": "Basal cell carcinoma",
+      "support": 51,
+      "precision": 0.4444,
+      "recall": 0.7059,
+      "f1": 0.5455
+    },
+    "bkl": {
+      "full_name": "Benign keratosis",
+      "support": 109,
+      "precision": 0.4455,
+      "recall": 0.4495,
+      "f1": 0.4475
+    },
+    "df": {
+      "full_name": "Dermatofibroma",
+      "support": 11,
+      "precision": 0.1628,
+      "recall": 0.6364,
+      "f1": 0.2593
+    },
+    "mel": {
+      "full_name": "Melanoma",
+      "support": 111,
+      "precision": 0.307,
+      "recall": 0.5946,
+      "f1": 0.4049
+    },
+    "nv": {
+      "full_name": "Melanocytic nevus",
+      "support": 670,
+      "precision": 0.9515,
+      "recall": 0.6448,
+      "f1": 0.7687
+    },
+    "vasc": {
+      "full_name": "Vascular lesion",
+      "support": 14,
+      "precision": 0.2727,
+      "recall": 0.8571,
+      "f1": 0.4138
+    }
+  },
+  "confusion_matrix": [
+    [
+      18,
+      5,
+      6,
+      1,
+      2,
+      0,
+      0
+    ],
+    [
+      3,
+      36,
+      2,
+      5,
+      4,
+      0,
+      1
+    ],
+    [
+      14,
+      8,
+      49,
+      2,
+      24,
+      9,
+      3
+    ],
+    [
+      2,
+      2,
+      0,
+      7,
+      0,
+      0,
+      0
+    ],
+    [
+      4,
+      8,
+      15,
+      3,
+      66,
+      13,
+      2
+    ],
+    [
+      10,
+      21,
+      38,
+      25,
+      118,
+      432,
+      26
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      12
+    ]
+  ],
+  "class_order": [
+    "akiec",
+    "bcc",
+    "bkl",
+    "df",
+    "mel",
+    "nv",
+    "vasc"
+  ]
+}

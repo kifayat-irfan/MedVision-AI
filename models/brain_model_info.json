@@ -1,0 +1,14 @@
+{
+ "architecture": "mobilenet_v3_small (ImageNet pretrained, backbone frozen, custom 256-unit classifier head)",
+ "input_size": 224,
+ "num_classes": 4,
+ "class_names": [
+  "glioma",
+  "meningioma",
+  "notumor",
+  "pituitary"
+ ],
+ "test_accuracy": 0.9199,
+ "model_file": "brain_model.pt",
+ "model_size_mb": 4.4
+}

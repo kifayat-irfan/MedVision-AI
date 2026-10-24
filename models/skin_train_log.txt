@@ -1,0 +1,18 @@
+[03:48:01] Extracting skin-cancer-mnist-ham10000.zip ...
+[03:50:01] Done extracting skin-cancer-mnist-ham10000.zip
+[03:50:01] Image dirs: ['HAM10000_images_part_1', 'HAM10000_images_part_2'], metadata: /home/hatch/workspace/data/ham10000/HAM10000_metadata.csv
+[03:50:02] Total usable images: 10015
+[03:50:02] train: 8019 {'bkl': 881, 'nv': 5365, 'df': 93, 'mel': 891, 'vasc': 114, 'bcc': 412, 'akiec': 263}
+[03:50:02] val: 998 {'bkl': 109, 'nv': 670, 'df': 11, 'mel': 111, 'vasc': 14, 'bcc': 51, 'akiec': 32}
+[03:50:02] test: 998 {'bkl': 109, 'nv': 670, 'df': 11, 'mel': 111, 'vasc': 14, 'bcc': 51, 'akiec': 32}
+[03:50:02] Model: mobilenet_v3_small | trainable 0.15M / total 1.08M params
+[04:08:59] Epoch 1/6 | train_loss=1.2598 train_acc=0.5254 | val_acc=0.6012
+[04:08:59]   -> saved best (val_acc=0.6012)
+[04:24:41] Epoch 2/6 | train_loss=1.0356 train_acc=0.6145 | val_acc=0.5772
+[04:37:38] Epoch 3/6 | train_loss=0.9488 train_acc=0.6416 | val_acc=0.6523
+[04:37:38]   -> saved best (val_acc=0.6523)
+[04:41:40] Epoch 4/6 | train_loss=0.8859 train_acc=0.6645 | val_acc=0.6122
+[04:46:08] Epoch 5/6 | train_loss=0.8313 train_acc=0.6889 | val_acc=0.6543
+[04:46:08]   -> saved best (val_acc=0.6543)
+[04:50:18] Epoch 6/6 | train_loss=0.7993 train_acc=0.6940 | val_acc=0.6323
+[04:50:44] DONE | test_acc=0.6212 macro_f1=0.4676 model_size=4.4MB time=62.7min

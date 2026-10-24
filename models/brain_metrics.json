@@ -1,0 +1,59 @@
+{
+ "test_accuracy": 0.9199,
+ "per_class": {
+  "glioma": {
+   "precision": 1.0,
+   "recall": 0.9931,
+   "f1": 0.9965
+  },
+  "meningioma": {
+   "precision": 0.9703,
+   "recall": 0.7967,
+   "f1": 0.875
+  },
+  "notumor": {
+   "precision": 0.8042,
+   "recall": 1.0,
+   "f1": 0.8915
+  },
+  "pituitary": {
+   "precision": 0.9195,
+   "recall": 0.8896,
+   "f1": 0.9043
+  }
+ },
+ "confusion_matrix": [
+  [
+   144,
+   0,
+   1,
+   0
+  ],
+  [
+   0,
+   98,
+   13,
+   12
+  ],
+  [
+   0,
+   0,
+   115,
+   0
+  ],
+  [
+   0,
+   3,
+   14,
+   137
+  ]
+ ],
+ "confusion_matrix_labels": [
+  "glioma",
+  "meningioma",
+  "notumor",
+  "pituitary"
+ ],
+ "best_val_accuracy": 0.9245,
+ "training_time_min": 16.5
+}

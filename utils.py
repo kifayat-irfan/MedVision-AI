@@ -15,13 +15,28 @@ def image_to_base64(img):
     img.convert("RGB").save(buf, format="JPEG")
     return base64.b64encode(buf.getvalue()).decode()
 
-def call_ensemble_ai(current_img, prior_img, modality, patient_data):
+def call_ensemble_ai(current_img, prior_img, modality, patient_data, cnn_predictions=None):
     # SenseNova API key — clear error message instead of raw KeyError
     api_key = st.secrets.get("SENSENOVA_API_KEY", "").strip()
     if not api_key:
         raise Exception(
             "SENSENOVA_API_KEY is missing. Add it in Streamlit Secrets "
             "(App settings → Secrets)."
+        )
+
+    # ── Grounding: real CNN outputs so the VLM explains instead of inventing ──
+    grounding = ""
+    if cnn_predictions:
+        lines = []
+        for p, s in sorted(cnn_predictions.items(), key=lambda kv: kv[1], reverse=True):
+            flag = " <-- ELEVATED (≥0.50)" if s >= 0.5 else ""
+            lines.append(f"- {p}: {s:.2f}{flag}")
+        grounding = (
+            "\n\nCNN PATHOLOGY MODEL OUTPUT (DenseNet121 trained on NIH ChestX-ray14, "
+            "112k images). These are REAL model probabilities — ground every claim in "
+            "your report in these numbers. Do NOT invent findings that contradict them. "
+            "If no pathology is elevated, say the scan appears unremarkable:\n"
+            + "\n".join(lines)
         )
     
     messages_content = []
@@ -42,7 +57,7 @@ def call_ensemble_ai(current_img, prior_img, modality, patient_data):
     You are MedVision AI, a board-certified radiologist AI. Analyze the medical scan and return a structured clinical report.
 
 PATIENT INFO: {patient_data}
-MODALITY: {modality}
+MODALITY: {modality}{grounding}
 
 STRICT RULES — YOU MUST FOLLOW THESE:
 - Do NOT use markdown symbols like ###, **, --, or *.

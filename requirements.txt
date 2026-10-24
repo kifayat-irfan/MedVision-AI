@@ -5,5 +5,7 @@ fpdf2
 python-docx
 pydicom
 numpy
-streamlit-lottie
 supabase
+torch
+torchvision
+torchxrayvision

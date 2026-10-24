@@ -1,0 +1,21 @@
+{
+  "architecture": "mobilenet_v3_small (ImageNet pretrained, backbone frozen)",
+  "input_size": [
+    224,
+    224
+  ],
+  "num_classes": 7,
+  "class_names": [
+    "akiec",
+    "bcc",
+    "bkl",
+    "df",
+    "mel",
+    "nv",
+    "vasc"
+  ],
+  "test_accuracy": 0.6212,
+  "macro_f1": 0.4676,
+  "dataset": "HAM10000 (10,015 dermatoscopic images)",
+  "weights_file": "skin_model.pt"
+}

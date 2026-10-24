@@ -88,17 +88,35 @@ with col_left:
     analyze = st.button("🔍 Analyze Scan", type="primary", disabled=not current_img)
     if analyze and current_img:
         with st.status("Analyzing scan…", expanded=True) as status:
-            prior_img = None
-            if prior_file:
-                st.write("Comparing with prior scan…")
-                prior_img = (process_dicom(prior_file)
-                             if prior_file.name.lower().endswith(".dcm")
-                             else Image.open(prior_file))
             try:
+                # ── Step 1: Route to the trained CNN for this modality ──
+                from multi_model import predict_modality, model_info, gradcam_for
+                st.write(f"🧠 {model_info(modality)}")
+                predictions = predict_modality(current_img, modality)
+                if predictions:
+                    st.session_state.predictions = predictions
+                    top = sorted(predictions.items(), key=lambda kv: kv[1], reverse=True)[:3]
+                    st.write("✅ CNN analysis: " + ", ".join(f"{p} ({s:.0%})" for p, s in top))
+                    # ── Step 2: Real Grad-CAM heatmap ──
+                    st.write("🔥 Generating Grad-CAM visual explanation…")
+                    st.session_state.final_img = gradcam_for(current_img, modality)
+                else:
+                    st.session_state.predictions = None
+                    st.session_state.final_img = None
+                    st.write("ℹ️ AI-assist mode — no trained CNN for this modality.")
+
+                # ── Step 3: VLM structured report, grounded in CNN outputs ──
+                prior_img = None
+                if prior_file:
+                    st.write("Comparing with prior scan…")
+                    prior_img = (process_dicom(prior_file)
+                                 if prior_file.name.lower().endswith(".dcm")
+                                 else Image.open(prior_file))
+
                 p_str = f"ID: {p_id}, Age: {age}, Gender: {gender}, History: {history_txt}"
-                report, model = call_ensemble_ai(current_img, prior_img, modality, p_str)
+                report, model = call_ensemble_ai(current_img, prior_img, modality, p_str,
+                                                 cnn_predictions=predictions)
                 st.session_state.report = report
-                st.session_state.final_img = draw_heatmap(current_img, report)
                 st.session_state.analysis_done = True
                 st.session_state.model = model
 
@@ -142,8 +160,21 @@ with col_right:
         with m2:
             st.markdown(f"**Patient:** {p_id} · {modality}")
 
+        # ── CNN predictions (if a trained model exists for this modality) ──
+        preds = st.session_state.get("predictions")
+        if preds:
+            from multi_model import model_info as _mi
+            st.markdown(f"**Model outputs** *({_mi(modality)})*")
+            top5 = sorted(preds.items(), key=lambda kv: kv[1], reverse=True)[:5]
+            for p, s in top5:
+                c1, c2 = st.columns([3, 1])
+                with c1:
+                    st.progress(s, text=str(p).replace("_", " "))
+                with c2:
+                    st.markdown(f"**{s:.0%}**{' 🔴' if s >= 0.5 else ''}")
+
         if st.session_state.final_img is not None:
-            st.markdown("**Finding localization**")
+            st.markdown("**Grad-CAM visual explanation** *(where the CNN looked)*")
             st.image(st.session_state.final_img, use_container_width=True)
         else:
             st.info("Heatmap not available for restored reports.")
