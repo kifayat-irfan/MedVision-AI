@@ -1,6 +1,5 @@
 import streamlit as st
 from PIL import Image
-import time
 
 from styles import apply_custom_styles
 from utils import call_ensemble_ai, draw_heatmap
@@ -124,9 +123,6 @@ with col_left:
 
         if st.button("🚀 Execute Full Intelligence Analysis"):
             with st.status("Running Comprehensive Analysis...", expanded=True) as status:
-                st.write("📡 Synchronizing Ensemble Vision Clusters...")
-                time.sleep(1)
-
                 prior_img = None
                 if prior_file:
                     st.write("⚖️ Performing Temporal Comparison...")
@@ -135,7 +131,7 @@ with col_left:
                         if prior_file.name.endswith(".dcm")
                         else Image.open(prior_file)
                     )
-                    time.sleep(1)
+                    # (prior_img assigned above)
 
                 try:
                     p_str = f"ID: {p_id}, Age: {age}, Gender: {gender}, History: {history}"

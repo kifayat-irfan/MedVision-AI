@@ -20,7 +20,13 @@ def image_to_base64(img):
     return base64.b64encode(buf.getvalue()).decode()
 
 def call_ensemble_ai(current_img, prior_img, modality, patient_data):
-    api_key = st.secrets["OPENROUTER_API_KEY"]
+    # FIX: clear error message instead of raw KeyError when the key is missing
+    api_key = st.secrets.get("OPENROUTER_API_KEY", "").strip()
+    if not api_key:
+        raise Exception(
+            "OPENROUTER_API_KEY is missing. Add it in Streamlit Secrets "
+            "(App settings → Secrets) — get a free key at openrouter.ai"
+        )
     
     messages_content = []
     messages_content.append({"type": "text", "text": "CURRENT SCAN (Today's Image):"})
