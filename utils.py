@@ -147,7 +147,10 @@ HEATMAP: [x, y, radius] (0-100 scale, identify the most critical finding locatio
         payload = {
             "model": model,
             "messages": [{"role": "user", "content": messages_content}],
-            "max_tokens": 2000,
+            # Diagnostic 2026-10-25: sensenova-6.8-flash-lite spent the whole
+            # 2000-token budget on reasoning (finish_reason=length, no
+            # content field). 8000 leaves room for reasoning + the report.
+            "max_tokens": 8000,
         }
         try:
             st.write(f"🔄 Analyzing with `{model}`...")
