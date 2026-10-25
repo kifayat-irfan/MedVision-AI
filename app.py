@@ -114,8 +114,49 @@ with col_left:
                                  else Image.open(prior_file))
 
                 p_str = f"ID: {p_id}, Age: {age}, Gender: {gender}, History: {history_txt}"
-                report, model = call_ensemble_ai(current_img, prior_img, modality, p_str,
-                                                 cnn_predictions=predictions)
+                try:
+                    report, model = call_ensemble_ai(current_img, prior_img, modality, p_str,
+                                                     cnn_predictions=predictions)
+                except Exception as vlm_err:
+                    # Do NOT lose the already-computed CNN + Grad-CAM just
+                    # because the VLM step failed (2026-10-24 live failure:
+                    # "Model returned empty content" wiped the whole analysis).
+                    # Show a CNN-only structured report with a clear warning.
+                    st.warning(
+                        f"VLM report unavailable ({vlm_err}). Showing CNN-only "
+                        "results below — retry Analyze Scan for the full report."
+                    )
+                    if predictions:
+                        top_lines = "\n".join(
+                            f"{i + 1}. {p} ({s:.0%})"
+                            for i, (p, s) in enumerate(
+                                sorted(predictions.items(),
+                                       key=lambda kv: kv[1], reverse=True))
+                        )
+                        report = (
+                            "TECHNICAL QUALITY:\nCNN analysis completed; "
+                            "VLM structured report unavailable in this run.\n\n"
+                            f"FINDINGS:\n{top_lines}\n\n"
+                            "TEMPORAL COMPARISON:\nN/A.\n\n"
+                            "FINAL IMPRESSION:\nCNN-only result — for professional "
+                            "review, not a diagnosis.\n\n"
+                            "TREATMENT ROADMAP:\n1. Review the CNN findings and "
+                            "Grad-CAM with a qualified professional. "
+                            "2. Retry the full analysis. 3. Follow up as advised.\n\n"
+                            "EVIDENCE BASE:\nCNN model output only; no VLM report "
+                            "generated in this run."
+                        )
+                    else:
+                        report = (
+                            "TECHNICAL QUALITY:\nVLM report unavailable in this run.\n\n"
+                            "FINDINGS:\nNo CNN model for this modality; VLM report "
+                            "could not be generated.\n\n"
+                            "TEMPORAL COMPARISON:\nN/A.\n\n"
+                            "FINAL IMPRESSION:\nNo report generated — retry the analysis.\n\n"
+                            "TREATMENT ROADMAP:\n1. Retry the analysis.\n\n"
+                            "EVIDENCE BASE:\nN/A."
+                        )
+                    model = "CNN-only (VLM unavailable)"
                 st.session_state.report = report
                 st.session_state.analysis_done = True
                 st.session_state.model = model

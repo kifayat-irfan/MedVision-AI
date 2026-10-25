@@ -45,12 +45,12 @@ vision-language AI for structured reporting.
   - Breast ultrasound: MobileNetV3-Small, trained on BUSI (780 images) — **78.26% test accuracy** (4-way TTA; 73.91% single-pass; malignant recall 0.61)
   - **85% target NOT reached** for skin or ultrasound — see the honest note under the model table
 - **Explainability:** Grad-CAM — genuine heatmaps from each model's own gradients
-- **Report AI:** SenseNova `sensenova-6.8-flash-lite` (vision), grounded in CNN probabilities
+- **Report AI:** SenseNova `sensenova-6.8-flash-lite` (vision), grounded in CNN probabilities; if it returns empty content, a fallback SenseNova model is tried, and if the VLM step still fails the app shows a CNN-only report (with Grad-CAM) instead of losing the whole analysis
+- **Tests:** pytest — 36 tests (multi-model router, CNN pipelines, Grad-CAM, DICOM, report gen, DB, VLM fallback)
 - **App:** Streamlit (Python) — clean clinical light theme
 - **Imaging:** Pillow, pydicom + NumPy (DICOM → image, handles multi-frame + MONOCHROME1)
 - **Storage:** SQLite (local default) / Supabase PostgreSQL (cloud, optional)
 - **Export:** fpdf2 (PDF), python-docx (DOCX) — every export carries a medical disclaimer
-- **Tests:** pytest — 29 tests (multi-model router, CNN pipelines, Grad-CAM, DICOM, report gen, DB)
 
 ## Setup
 
