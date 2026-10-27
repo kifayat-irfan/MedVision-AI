@@ -39,7 +39,7 @@ def test_ultrasound_predict_tta():
     # 4-way TTA inference (see multi_model.predict_modality): labels are the
     # full names from models/us_classes.json, probabilities sum to 1.
     preds = predict_modality(_rgb(), "Ultrasound")
-    assert set(preds) == {"Benign lesion", "Malignant lesion", "Normal (no lesion)"}
+    assert set(preds) == {"Benign lesion", "Malignant lesion", "Normal tissue"}
     assert abs(sum(preds.values()) - 1.0) < 0.01
     assert all(0.0 <= v <= 1.0 for v in preds.values())
 
@@ -56,9 +56,10 @@ def test_ultrasound_model_shape():
 
 
 def test_ultrasound_model_info_labels_tta_accuracy():
-    # The UI number must match the inference actually used: 4-way TTA = 78.3%.
+    # The UI number must match the inference actually used: 4-way TTA = 79.1%
+    # (ultrasound v2, EfficientNet-B0, 2026-10-27; was 78.3% MobileNetV3).
     info = model_info("Ultrasound")
-    assert "78.3%" in info and "4-way TTA" in info
+    assert "79.1%" in info and "4-way TTA" in info
 
 
 @pytest.mark.slow

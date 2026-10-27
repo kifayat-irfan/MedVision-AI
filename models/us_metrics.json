@@ -1,45 +1,42 @@
 {
-  "test_accuracy": 0.7826,
+  "test_accuracy": 0.7913,
   "eval_method": "4-way TTA (original + hflip + vflip + hvflip, averaged probabilities)",
-  "other_evals": {
-    "single_pass_no_tta": 0.7391,
-    "hflip_tta": 0.7652
-  },
+  "macro_f1": 0.7804,
   "per_class": {
     "benign": {
-      "precision": 0.8525,
-      "recall": 0.8,
-      "f1": 0.8254,
+      "precision": 0.8548,
+      "recall": 0.8154,
+      "f1": 0.8346,
       "n": 65
     },
     "malignant": {
-      "precision": 0.8636,
-      "recall": 0.6129,
-      "f1": 0.717,
+      "precision": 0.6774,
+      "recall": 0.6774,
+      "f1": 0.6774,
       "n": 31
     },
     "normal": {
-      "precision": 0.5938,
-      "recall": 1.0,
-      "f1": 0.7451,
+      "precision": 0.7727,
+      "recall": 0.8947,
+      "f1": 0.8293,
       "n": 19
     }
   },
   "confusion_matrix": [
     [
-      52,
-      3,
-      10
-    ],
-    [
+      53,
       9,
-      19,
       3
     ],
     [
-      0,
-      0,
-      19
+      8,
+      21,
+      2
+    ],
+    [
+      1,
+      1,
+      17
     ]
   ],
   "class_order": [
@@ -48,5 +45,8 @@
     "normal"
   ],
   "n_test": 115,
-  "note": "85% target NOT reached. Best of 5 training rounds (round 3: mask-crop augmentation). Val accuracy was 87.6% but test is 78.3% \u2014 small-dataset split variance."
+  "split_reproduced": true,
+  "best_val_macro_f1": 0.7216,
+  "architecture": "efficientnet_b0 (ImageNet pretrained, FULL fine-tune, differential LRs)",
+  "malignant_weight_boost": 1.3
 }

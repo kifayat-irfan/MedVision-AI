@@ -1,5 +1,5 @@
 {
-  "architecture": "efficientnet_b0 (ImageNet pretrained, full fine-tune, differential LRs)",
+  "architecture": "convnext_tiny (ImageNet pretrained, layerwise fine-tune, EMA)",
   "input_size": [
     224,
     224
@@ -14,10 +14,13 @@
     "nv",
     "vasc"
   ],
-  "test_accuracy": 0.8246,
-  "macro_f1": 0.6914,
+  "test_accuracy": 0.8507,
+  "macro_f1": 0.7574,
   "dataset": "HAM10000 (10,015 dermatoscopic images)",
   "weights_file": "skin_model.pt",
-  "training": "Phase1 head-warmup 3ep (frozen backbone) + Phase2 partial fine-tune 10ep (stages 5-7 + head, differential LRs 2e-5/1e-4), sqrt-inverse class-weighted CE + label smoothing 0.1, TTA x5",
-  "best_epoch": "Phase2 epoch 8 (val_acc 0.8166, val_macroF1 0.6750)"
+  "training": "Phase1 head-warmup 3ep (frozen backbone) + Phase2 layerwise fine-tune <=16ep (early 5e-6 / late 2e-5 / head 1e-4, 2-ep warmup + cosine to 5%, EMA 0.999, patience 4, min 8ep), sqrt-inverse class-weighted CE (mel x1.25) + label smoothing 0.1, colour constancy + RandAugment(2,7) + hair overlay, TTA x5, val-locked contested-zone threshold",
+  "best_epoch": "best val_macroF1=0.7609 best val_mel_recall=0.6847",
+  "locked_threshold": 0.4,
+  "decision_rule": "contested-zone threshold t=0.40 (val-locked)",
+  "verdict": "PASS"
 }

@@ -7,7 +7,6 @@
   "full_names": {
     "benign": "Benign lesion",
     "malignant": "Malignant lesion",
-    "normal": "Normal (no lesion)"
-  },
-  "num_classes": 3
+    "normal": "Normal tissue"
+  }
 }

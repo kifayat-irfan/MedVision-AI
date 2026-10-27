@@ -1,112 +1,198 @@
 {
-  "test_accuracy": 0.8246,
-  "macro_f1": 0.6914,
+  "test_accuracy": 0.8507,
+  "test_accuracy_argmax_tta": 0.8587,
+  "test_accuracy_single_view_argmax": 0.8547,
+  "test_accuracy_ci95_wilson": [
+    0.8272,
+    0.8715
+  ],
+  "macro_f1": 0.7574,
+  "macro_f1_ci95_bootstrap": [
+    0.701,
+    0.8017
+  ],
   "n_test": 998,
+  "test_counts": {
+    "bkl": 109,
+    "nv": 670,
+    "df": 11,
+    "mel": 111,
+    "vasc": 14,
+    "bcc": 51,
+    "akiec": 32
+  },
+  "val_counts": {
+    "bkl": 109,
+    "nv": 670,
+    "df": 11,
+    "mel": 111,
+    "vasc": 14,
+    "bcc": 51,
+    "akiec": 32
+  },
+  "train_counts": {
+    "bkl": 881,
+    "nv": 5365,
+    "df": 93,
+    "mel": 891,
+    "vasc": 114,
+    "bcc": 412,
+    "akiec": 263
+  },
   "per_class": {
     "akiec": {
       "full_name": "Actinic keratosis / Bowen's disease",
       "support": 32,
-      "precision": 0.5217,
-      "recall": 0.75,
-      "f1": 0.6154
+      "precision": 0.6176,
+      "recall": 0.6562,
+      "f1": 0.6364,
+      "tp": 21,
+      "fp": 13,
+      "fn": 11,
+      "recall_ci95_wilson": [
+        0.4831,
+        0.7959
+      ]
     },
     "bcc": {
       "full_name": "Basal cell carcinoma",
       "support": 51,
-      "precision": 0.7358,
-      "recall": 0.7647,
-      "f1": 0.75
+      "precision": 0.8367,
+      "recall": 0.8039,
+      "f1": 0.82,
+      "tp": 41,
+      "fp": 8,
+      "fn": 10,
+      "recall_ci95_wilson": [
+        0.6754,
+        0.8898
+      ]
     },
     "bkl": {
       "full_name": "Benign keratosis",
       "support": 109,
-      "precision": 0.6545,
-      "recall": 0.6606,
-      "f1": 0.6575
+      "precision": 0.7732,
+      "recall": 0.6881,
+      "f1": 0.7282,
+      "tp": 75,
+      "fp": 22,
+      "fn": 34,
+      "recall_ci95_wilson": [
+        0.596,
+        0.7674
+      ]
     },
     "df": {
       "full_name": "Dermatofibroma",
       "support": 11,
-      "precision": 0.5833,
-      "recall": 0.6364,
-      "f1": 0.6087
+      "precision": 0.5625,
+      "recall": 0.8182,
+      "f1": 0.6667,
+      "tp": 9,
+      "fp": 7,
+      "fn": 2,
+      "recall_ci95_wilson": [
+        0.523,
+        0.9486
+      ]
     },
     "mel": {
       "full_name": "Melanoma",
       "support": 111,
-      "precision": 0.6389,
-      "recall": 0.4144,
-      "f1": 0.5027
+      "precision": 0.5493,
+      "recall": 0.7027,
+      "f1": 0.6166,
+      "tp": 78,
+      "fp": 64,
+      "fn": 33,
+      "recall_ci95_wilson": [
+        0.6121,
+        0.7798
+      ]
     },
     "nv": {
       "full_name": "Melanocytic nevus",
       "support": 670,
-      "precision": 0.9067,
-      "recall": 0.9284,
-      "f1": 0.9174
+      "precision": 0.9502,
+      "recall": 0.9119,
+      "f1": 0.9307,
+      "tp": 611,
+      "fp": 32,
+      "fn": 59,
+      "recall_ci95_wilson": [
+        0.8881,
+        0.9311
+      ]
     },
     "vasc": {
       "full_name": "Vascular lesion",
       "support": 14,
-      "precision": 0.6842,
-      "recall": 0.9286,
-      "f1": 0.7879
+      "precision": 0.8235,
+      "recall": 1.0,
+      "f1": 0.9032,
+      "tp": 14,
+      "fp": 3,
+      "fn": 0,
+      "recall_ci95_wilson": [
+        0.7847,
+        1.0
+      ]
     }
   },
   "confusion_matrix": [
     [
-      24,
-      1,
+      21,
+      2,
       5,
+      1,
+      3,
       0,
-      1,
-      1,
       0
     ],
     [
       3,
-      39,
-      4,
-      1,
-      1,
-      3,
-      0
-    ],
-    [
-      13,
-      3,
-      72,
+      41,
       0,
-      5,
-      16,
-      0
-    ],
-    [
-      1,
+      2,
       2,
       1,
-      7,
-      0,
-      0,
-      0
-    ],
-    [
-      3,
-      3,
-      11,
-      3,
-      46,
-      43,
       2
     ],
     [
+      6,
       2,
-      5,
-      17,
+      75,
+      2,
+      14,
+      10,
+      0
+    ],
+    [
       1,
-      19,
-      622,
-      4
+      1,
+      0,
+      9,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      2,
+      7,
+      2,
+      78,
+      21,
+      0
+    ],
+    [
+      2,
+      1,
+      10,
+      0,
+      45,
+      611,
+      1
     ],
     [
       0,
@@ -114,8 +200,8 @@
       0,
       0,
       0,
-      1,
-      13
+      0,
+      14
     ]
   ],
   "class_order": [
@@ -127,5 +213,33 @@
     "nv",
     "vasc"
   ],
-  "tta_views": 5
+  "tta_views": 5,
+  "tta_method": "deterministic: identity + hflip + vflip + hvflip + rot90, mean softmax",
+  "split_reproduced": true,
+  "split_method": "per-class random.shuffle seed 42 in metadata-insertion order; test=first int(n*0.10), val=next int(n*0.10), train=rest",
+  "seed": 42,
+  "architecture": "convnext_tiny (ImageNet pretrained IMAGENET1K_V1, layerwise fine-tune, EMA)",
+  "input_size": [
+    224,
+    224
+  ],
+  "gpu": "Tesla T4 (15.64 GB)",
+  "training_time_min": 48.9,
+  "checkpoint_selection": "best val macro-F1 (EMA, val only)",
+  "best_val_macro_f1": 0.7609,
+  "best_val_mel_recall": 0.6847,
+  "locked_threshold": 0.4,
+  "decision_rule": "contested-zone threshold t=0.40 (val-locked)",
+  "n_test_evaluations": 1,
+  "train_test_image_overlap": 0,
+  "train_test_lesion_overlap": 386,
+  "per_case_predictions_file": "skin_test_predictions.csv (image_id,true,pred,prob_mel)",
+  "gates": {
+    "accuracy_gt_0.8470": true,
+    "macro_f1_ge_0.70": true,
+    "mel_recall_ge_0.60": true,
+    "mel_f1_ge_0.55": true,
+    "verdict": "PASS"
+  },
+  "collapse_flags": []
 }

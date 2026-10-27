@@ -21,14 +21,13 @@ vision-language AI for structured reporting.
 |---|---|---|---|
 | 🫁 Chest X-ray | DenseNet121 | NIH ChestX-ray14 (112,120 images) | 14 pathologies |
 | 🧠 Brain MRI | MobileNetV3-Small | Brain tumor MRI (5,369 images) | **92.0%** |
-| 🔬 Skin / Dermatology | EfficientNet-B0 | HAM10000 (10,015 images) | **82.46%** (TTA x5) |
-| 🩻 Ultrasound | MobileNetV3-Small | BUSI breast ultrasound (780 images) | **78.26%** (4-way TTA) |
+| 🔬 Skin / Dermatology | ConvNeXt-Tiny | HAM10000 (10,015 images) | **85.07%** (TTA x5, contested t=0.40) |
+| 🩻 Ultrasound | EfficientNet-B0 | BUSI breast ultrasound (780 images) | **79.13%** (4-way TTA) |
 | 🩻 CT Scan | Vision-language AI assist | — | clearly labeled |
 
-> **Honest note on the 85% target:** the 85% goal was **NOT** reached for skin or ultrasound.
-> Skin improved from 62.1% to **82.46%** (TTA x5, macro F1 0.6914), but melanoma recall **dropped to 0.41** (from 0.60) — a real regression, not hidden.
-> Ultrasound reached **78.26%** with 4-way TTA (73.91% single-pass; malignant recall 0.61 is the weakest class).
-> Both remain educational / decision-support demos, not clinically validated tools.
+> **Update 2026-10-27 — skin target REACHED, ultrasound improved:** skin is now **85.07%** (ConvNeXt-Tiny, TTA x5 with val-locked contested threshold t=0.40; macro F1 0.7574, melanoma recall 0.7027, melanoma F1 0.6166 — all gates pass on the fixed 998-image test set, verified locally from the Kaggle probabilities).
+> Ultrasound improved to **79.13%** (EfficientNet-B0, 4-way TTA; macro F1 0.7804, malignant recall 0.6774 — local eval on the same 115-image test set reproduces the Kaggle numbers exactly), but the 85% ultrasound target is still **NOT** reached.
+> Both remain educational / decision-support demos, not clinically validated tools. Previous models are preserved in the repo history (skin v2 was 82.46% EfficientNet-B0, ultrasound v1 was 78.26% MobileNetV3-Small).
 
 3. **Grad-CAM visual explanation** — genuine heatmaps from each model's own gradients.
 4. **Grounded AI report** — SenseNova's vision model writes the structured clinical report,
@@ -41,12 +40,12 @@ vision-language AI for structured reporting.
 - **Pathology CNNs:**
   - Chest X-ray: DenseNet121 via `torchxrayvision`, pretrained on NIH ChestX-ray14 (112k images)
   - Brain MRI: MobileNetV3-Small, trained on 5,369 brain MRIs — **92.0% test accuracy**
-  - Skin lesions: EfficientNet-B0, trained on HAM10000 (10,015 dermatoscopic images) — **82.46% test accuracy** (TTA x5, macro F1 0.6914; melanoma recall 0.41, down from 0.60)
-  - Breast ultrasound: MobileNetV3-Small, trained on BUSI (780 images) — **78.26% test accuracy** (4-way TTA; 73.91% single-pass; malignant recall 0.61)
-  - **85% target NOT reached** for skin or ultrasound — see the honest note under the model table
+  - Skin lesions: ConvNeXt-Tiny, trained on HAM10000 (10,015 dermatoscopic images) — **85.07% test accuracy** (TTA x5 with val-locked contested threshold t=0.40; macro F1 0.7574; melanoma recall 0.7027, melanoma F1 0.6166)
+  - Breast ultrasound: EfficientNet-B0, trained on BUSI (780 images) — **79.13% test accuracy** (4-way TTA; macro F1 0.7804; malignant recall 0.6774)
+  - **85% target reached for skin (2026-10-27); ultrasound target still NOT reached** — see the honest note under the model table
 - **Explainability:** Grad-CAM — genuine heatmaps from each model's own gradients
 - **Report AI:** SenseNova `sensenova-6.8-flash-lite` (vision), grounded in CNN probabilities; if it returns empty content, a fallback SenseNova model is tried, and if the VLM step still fails the app shows a CNN-only report (with Grad-CAM) instead of losing the whole analysis
-- **Tests:** pytest — 36 tests (multi-model router, CNN pipelines, Grad-CAM, DICOM, report gen, DB, VLM fallback)
+- **Tests:** pytest — 41 tests (multi-model router, CNN pipelines, Grad-CAM, DICOM, report gen, DB, VLM fallback, ConvNeXt skin)
 - **App:** Streamlit (Python) — clean clinical light theme
 - **Imaging:** Pillow, pydicom + NumPy (DICOM → image, handles multi-frame + MONOCHROME1)
 - **Storage:** SQLite (local default) / Supabase PostgreSQL (cloud, optional)

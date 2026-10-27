@@ -1,7 +1,7 @@
 {
-  "architecture": "mobilenet_v3_small",
+  "architecture": "efficientnet_b0",
   "pretrained": "ImageNet1K_V1",
-  "classifier_head": "nn.Sequential(nn.Linear(in_f, 256), nn.Hardswish(), nn.Dropout(0.2), nn.Linear(256, num_classes))",
+  "classifier_head": "nn.Sequential(nn.Dropout(0.3), nn.Linear(1280, 256), nn.SiLU(), nn.Dropout(0.2), nn.Linear(256, 3))",
   "input_size": [
     224,
     224
@@ -17,15 +17,11 @@
     "malignant",
     "normal"
   ],
-  "test_accuracy": 0.7826,
+  "test_accuracy": 0.7913,
   "test_accuracy_eval": "4-way TTA",
-  "dataset": "BUSI (Breast Ultrasound Images Dataset) via HuggingFace theshoaibme/panorgan-busi-breast-ultrasound",
-  "dataset_size": 780,
-  "split": "stratified 70/15/15 (train 550 / val 115 / test 115); final model trained on train+val (665) + 551 mask-cropped samples",
-  "training": "round 3 of 5: 8 head epochs (frozen backbone, LR 1e-3) + 12 fine-tune epochs (LR 1e-4, cosine), batch 8, augmentation: flips/rotation/affine/color jitter + mask-crop",
+  "dataset": "BUSI breast ultrasound (780 images: benign 437, malignant 210, normal 133)",
+  "split": "stratified round-1 split: train 550 / val 115 / test 115 + mask-crops from train only",
+  "training": "phase1 head-warmup 3ep + phase2 FULL fine-tune <=25ep, early stop on val macro-F1, sqrt-inverse class weights with malignant x1.3, label smoothing 0.1, mask-crop augmentation, 4-way TTA",
   "model_file": "us_model.pt",
-  "model_size_mb": 4.4,
-  "target_85pct": "NOT reached (78.26% with 4-way TTA; 76.52% with hflip TTA; 73.91% single-pass)",
-  "grad_cam_compatible": true,
-  "notes": "Load with the exact classifier head above. For best accuracy at inference, use 4-way TTA (see eval_method in us_metrics.json). Malignant recall is the weakest class (see per-class metrics)."
+  "integration_warning": "multi_model.py currently builds mobilenet_v3_small for Ultrasound; update its loader dispatch to efficientnet_b0 with the head above before replacing models/us_model.pt"
 }
